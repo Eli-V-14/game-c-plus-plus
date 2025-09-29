@@ -8,6 +8,7 @@ Initial Game Concept:
         - Destroy Zombies
         - Collect EXP/Points
         - Weapon Upgrades
+        - Player Upgrades
 
     - 2 Person / Multiplayer
         - UDP Streams

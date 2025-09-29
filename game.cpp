@@ -10,11 +10,10 @@
 
 void update_player(int &x, int &y) {
     int normalized = sqrt(50) / 5;
-    if (IsKeyDown(KEY_UP) && (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT))) {
-        y -= normalized;
-        x -= normalized;
-    }
-
+    // if (IsKeyDown(KEY_UP) && (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_RIGHT))) {
+    //     y -= normalized;
+    //     x -= normalized;
+    // }
 
     if (IsKeyDown(KEY_UP)) y -= 5;
     if (IsKeyDown(KEY_DOWN)) y += 5;
