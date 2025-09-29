@@ -13,6 +13,7 @@ using namespace std;
 
 void update_player(float &x, float &y) {
     const double normalized = 1 / sqrt(2);
+    bool dash = false;
     float dy = 0;
     float dx = 0;
 
@@ -20,14 +21,15 @@ void update_player(float &x, float &y) {
     if (IsKeyDown(KEY_S)) dy = 5;
     if (IsKeyDown(KEY_A)) dx = -5;
     if (IsKeyDown(KEY_D)) dx = 5;
+    if (IsKeyPressed(KEY_RIGHT_SHIFT)) dash = true;
 
     if (dx != 0 && dy != 0) {
         dy = dy * normalized;
         dx = dx * normalized;
     }
 
-    x+=dx;
-    y+=dy;
+    x+=dx * (dash ? 20 : 1);
+    y+=dy * (dash ? 20 : 1);
 }
 
 void draw_direction(float &x, float &y, float player_dim) {
