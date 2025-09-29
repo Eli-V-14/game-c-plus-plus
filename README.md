@@ -19,3 +19,5 @@ Initial Game Concept:
 Sources of Information:
 - https://www.freecodecamp.org/news/c-game-development-with-raylib/
 - https://www.youtube.com/watch?v=Xp-zn1TyMjU&t=305s
+- https://www.tutorials.vyeron.com/c-tutorial-how-to-correct-your-diagonal-movement/
+- 
