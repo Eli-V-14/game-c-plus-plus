@@ -1,10 +1,10 @@
 //
 // Created by vanget on 10/6/2025.
 //
-
-#include "player.h"
 #include <raylib.h>
 #include <math.h>
+
+#include "player.h"
 
 float Player::getX() const {
     return x;
@@ -38,8 +38,8 @@ void Player::setWidth(float player_width) {
     w = player_width;
 }
 
-void Player::drawPlayer() {
-    DrawRectangle(x, y, w, h, BLUE);
+void Player::drawPlayer() const {
+    DrawRectangle(x, y, w, h, ORANGE);
 }
 
 void Player::update(float delta_time) {

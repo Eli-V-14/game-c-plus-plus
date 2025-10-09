@@ -15,7 +15,7 @@ class Player {
         void setWidth(float w);
 
         void update(float delta_time);
-        void drawPlayer();
+        void drawPlayer() const;
 
         float getX() const;
         float getY() const;

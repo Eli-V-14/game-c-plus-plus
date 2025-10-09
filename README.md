@@ -1,8 +1,8 @@
-# paint-ball
-Making a Paint Ball multiplayer game for a term project in C++
+# Multiplayer Game 
+Making a Multiplayer game for a term project in C++
 
 Initial Game Concept:
-- Singular box (User) with a paintball gun
+- Singular box (User) with a tool
 - Different modes
     - Zombie
         - Destroy Zombies
