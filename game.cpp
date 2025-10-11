@@ -1,5 +1,5 @@
 //
-// Created by vanget on 9/26/2025.
+// Created by Eli Vang on 9/26/2025.
 //
 
 #include <raylib.h>
@@ -12,34 +12,35 @@
 #include "player.h"
 #include "mouse.h"
 #include "stats.h"
+#include "settings.cpp"
+
 using namespace std;
 
 int main() {
-    constexpr int screen_width = 1200;
-    constexpr int screen_height = 800;
-    Mouse m;
-    Player p;
-    Stats s;
-    // Setting player information
 
-    p.setWidth(30);
-    p.setHeight(30);
-    p.setX(screen_width/2 - p.getWidth()/2);
-    p.setY(screen_height/2 - p.getHeight()/2);
+    Player p = Player(SCREEN_WIDTH/2 - 15, SCREEN_HEIGHT/2 - 25, 30, 50);
 
-    InitWindow(screen_width, screen_height, "Paint Ball Game");
-    SetTargetFPS(60);
+
+    // Setting up rendering window
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Paint Ball Game");
+    SetTargetFPS(FPS);
     srand(time(NULL));
 
     while (!WindowShouldClose()) {
         // update game logic should go here
+        Stats s;
+        Mouse m;
+        DrawBoundingBox({{1, 1, 0}, {SCREEN_WIDTH, SCREEN_HEIGHT, 0}}, PURPLE);
+        // DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLUE);
 
         BeginDrawing();
         ClearBackground(WHITE);
         // everything we want to draw has to be done within Begin/End Drawing
         float delta_time = GetFrameTime();
         p.update(delta_time);
-        p.drawPlayer();
+        p.drawPlayer(p.getX(), p.getY(), p.getWidth(), p.getHeight());
+
+
 
         m.drawDirection(p.getX(), p.getY(), p.getWidth(), p.getHeight());
         s.displayStats(p.getX(), p.getY());

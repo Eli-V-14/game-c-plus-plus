@@ -11,5 +11,8 @@ add_executable(game-c++
         mouse.cpp
         mouse.h
         stats.cpp
-        stats.h)
+        stats.h
+        shoot.cpp
+        shoot.h
+        settings.cpp)
 target_link_libraries(game-c++ PRIVATE raylib)

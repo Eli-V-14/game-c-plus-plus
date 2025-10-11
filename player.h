@@ -2,34 +2,49 @@
 // Created by vanget on 10/6/2025.
 //
 
-#ifndef PAINT_BALL_PLAYER_H
-#define PAINT_BALL_PLAYER_H
-
+#ifndef PLAYER_H
+#define PLAYER_H
+#include <vector>
+using namespace std;
 
 class Player {
-    public:
-        void setX(float x);
-        void setY(float y);
+public:
+    bool charging;
+    float startingDashX;
+    float startingDashY;
+    float previousX;
+    float previousY;
 
-        void setHeight(float h);
-        void setWidth(float w);
+    float dash = 1;
+    bool isDashing = false;
+    bool dashed = false;
+    float dashProgress = 0;
+    float startDashTime = 0;
 
-        void update(float delta_time);
-        void drawPlayer() const;
+    void setX(float x);
+    void setY(float y);
+    float getX() const;
+    float getY() const;
 
-        float getX() const;
-        float getY() const;
+    void setHeight(float h=30);
+    void setWidth(float w=30);
+    float getHeight() const;
+    float getWidth() const;
 
-        float getHeight() const;
-        float getWidth() const;
+    void update(float delta_time);
+    void updateMovement(float delta_time);
+    void drawPlayer(float x, float y, float w, float h) const;
+
+    Rectangle getRect() const;
+    Player(float x, float y, float w, float h);
 
     private:
-        int x = 0;
-        int y = 0;
-        int h = 30;
-        int w = 30;
-        bool charging = false;
+
+    float x;
+    float y;
+    float w;
+    float h;
 };
 
 
-#endif //PAINT_BALL_PLAYER_H
+#endif //PLAYER_H
