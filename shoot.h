@@ -11,10 +11,18 @@ class Shoot {
     Shoot(float x, float y);
     float x;
     float y;
+    float vx;
+    float vy;
+    float angle;
 
-    void drawShot();
-    void update();
-    void updateShot();
+    float speed = 750;
+    float length = 20;
+    float duration = 0;
+    bool active = true;
+
+    void drawShot() const;
+    void update(float delta_time);
+    bool isActive() const;
 };
 
 

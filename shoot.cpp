@@ -6,24 +6,41 @@
 
 #include <cmath>
 
+#include "player.h"
+
 using namespace std;
 
 Shoot::Shoot(float x, float y) {
     this->x = x;
     this->y = y;
+    angle = atan2(GetMouseY() - y, GetMouseX() - x);
+    vx = cos(angle) * speed;
+    vy = sin(angle) * speed;
 }
 
-void Shoot::drawShot() {
-    float dx = cos(atan2(GetMouseY() - y, GetMouseX() - x));
-    float dy = sin(atan2(GetMouseY() - y, GetMouseX() - x));
-
+void Shoot::drawShot() const {
+    Vector2 v1  = {x, y};
+    Vector2 v2 = {x + vx * (length / speed), y + vy * (length / speed)};
+    DrawLineEx(v1, v2,  3, RED);
 }
 
-void Shoot::update() {
+void Shoot::update(float delta_time) {
+    if (!active) return;
 
+    x += vx * delta_time;
+    y += vy * delta_time;
+
+    drawShot();
+
+    duration += delta_time;
+    if (duration >= 1.0f) {
+        active = false;
+    }
 }
 
-void Shoot::updateShot() {
-
+bool Shoot::isActive() const {
+    return active;
 }
+
+
 

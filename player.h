@@ -5,6 +5,8 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 #include <vector>
+
+#include "shoot.h"
 using namespace std;
 
 class Player {
@@ -14,12 +16,18 @@ public:
     float startingDashY;
     float previousX;
     float previousY;
+    vector<Shoot> shots;
 
-    float dash = 1;
     bool isDashing = false;
     bool dashed = false;
+
+    float dash = 1;
     float dashProgress = 0;
     float startDashTime = 0;
+
+    float speed = 7.0f;
+    float maxDashCharge = 400.0f;
+    float dashMultiplier = 1300.0f;
 
     void setX(float x);
     void setY(float y);
@@ -33,6 +41,8 @@ public:
 
     void update(float delta_time);
     void updateMovement(float delta_time);
+    void updateAction(float delta_time);
+    void resetDashing();
     void drawPlayer(float x, float y, float w, float h) const;
 
     Rectangle getRect() const;

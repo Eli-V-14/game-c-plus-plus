@@ -31,7 +31,6 @@ int main() {
         Stats s;
         Mouse m;
         DrawBoundingBox({{1, 1, 0}, {SCREEN_WIDTH, SCREEN_HEIGHT, 0}}, PURPLE);
-        // DrawRectangle(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, BLUE);
 
         BeginDrawing();
         ClearBackground(WHITE);
@@ -42,7 +41,7 @@ int main() {
 
 
 
-        m.drawDirection(p.getX(), p.getY(), p.getWidth(), p.getHeight());
+        // m.drawDirection(p.getX(), p.getY(), p.getWidth(), p.getHeight());
         s.displayStats(p.getX(), p.getY());
         EndDrawing();
     }

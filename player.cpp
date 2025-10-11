@@ -4,6 +4,7 @@
 #include <raylib.h>
 #include <iostream>
 #include "player.h"
+#include "shoot.h"
 
 using namespace std;
 
@@ -52,21 +53,24 @@ void Player::drawPlayer(float x, float y, float w, float h) const {
     DrawBoundingBox({{x, y ,0}, {x+w, y+h, 0}}, BLUE);
 }
 
-float dashEasing(float dash) {
-    return 1 - pow(1 - dash, 17);
+float dashEasing(float x) {
+    return 1 - pow(1 - x, 17);
 }
-
-
-
 
 void Player::update(float delta_time) {
     updateMovement(delta_time);
+    updateAction(delta_time);
+}
+
+void Player::resetDashing() {
+    isDashing = false;
+    dashProgress = 0;
+    dash = 1;
+    previousX = 0;
+    previousY = 0;
 }
 
 void Player::updateMovement(float delta_time) {
-    constexpr float speed = 7.0f;
-    constexpr float maxDashCharge = 400.0f;
-    constexpr float dashMultipler = 1000.0f;
     const double normalized = 1 / sqrt(2.0);
 
     float dx = 0.0f;
@@ -74,7 +78,6 @@ void Player::updateMovement(float delta_time) {
 
     bool released = IsKeyReleased(KEY_TAB);
 
-    // --- Capture input, but only for direction memory ---
     if (IsKeyDown(KEY_W)) {
         float angle = atan2(GetMouseY() - y - h/2, GetMouseX() - x - w/2);
         dx = cos(angle);
@@ -89,7 +92,7 @@ void Player::updateMovement(float delta_time) {
     charging = IsKeyDown(KEY_TAB);
 
     if (charging && !isDashing) {
-        dash += delta_time * dashMultipler;
+        dash += delta_time * dashMultiplier;
         if (dash > maxDashCharge) {
             dash = maxDashCharge;
         }
@@ -97,7 +100,6 @@ void Player::updateMovement(float delta_time) {
         previousY = dy;
         Color orange= {255, 165, 0, 128};
         DrawRectangle(x+dx*dash, y+dy*dash, w, h, orange);
-
     }
 
     if (released && !isDashing) {
@@ -108,25 +110,50 @@ void Player::updateMovement(float delta_time) {
     }
 
     if (!charging && !isDashing) {
-        x += dx * speed;
-        y += dy * speed;
+        float vx = dx * speed;
+        float vy = dy * speed;
 
+        float targetX = GetMouseX() - w/2;
+        float targetY = GetMouseY() - h/2;
+
+        float distance = sqrt(pow(targetX - x, 2) + pow(targetY - y, 2));
+
+        if (distance >= 5) {
+            x += vx;
+            y += vy;
+        }
     } else if (isDashing) {
-        if (dashProgress < 0.1f) {
+        if (dashProgress < 1.0f) {
             float xDashProgress = previousX * dash * dashEasing(dashProgress);
             float yDashProgress = previousY * dash * dashEasing(dashProgress);
 
+            if (abs(x - (startingDashX + xDashProgress)) < 5 && abs(y - (startingDashY + yDashProgress)) < 5) {
+                resetDashing();
+            }
+
             x = startingDashX + xDashProgress;
             y = startingDashY + yDashProgress;
-            dashProgress += delta_time;
+            dashProgress += delta_time / 0.5;
         } else {
-            isDashing = false;
-            dashProgress = 0;
-            dash = 1;
-            previousX = 0;
-            previousY = 0;
+            resetDashing();
         }
     }
+}
+
+void Player::updateAction(float delta_time) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !charging  && !isDashing) {
+        shots.emplace_back(x + w/2, y + h/2);
+    }
+
+    for (auto it = shots.begin(); it != shots.end(); ) {
+        it->update(delta_time);
+        if (!it->isActive()) {
+            it = shots.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
 }
 
 Rectangle Player::getRect() const {
