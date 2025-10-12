@@ -5,20 +5,22 @@ set(CMAKE_CXX_STANDARD 14)
 find_package(raylib CONFIG REQUIRED)
 
 add_executable(game-c++
-        game.cpp
-        player.cpp
-        player.h
-        mouse.cpp
-        mouse.h
-        stats.cpp
-        stats.h
-        shoot.cpp
-        shoot.h
-        settings.cpp
-        settings.h
-        playerCamera.cpp
-        playerCamera.h
-        gameStateManager.cpp
-        gameStateManager.h
+        src/coreMechanics/test.cpp
+        src/coreMechanics/player.cpp
+        src/coreMechanics/player.h
+        src/coreMechanics/mouse.cpp
+        src/coreMechanics/mouse.h
+        src/coreMechanics/stats.cpp
+        src/coreMechanics/stats.h
+        src/coreMechanics/shoot.cpp
+        src/coreMechanics/shoot.h
+        src/coreMechanics/settings.cpp
+        src/coreMechanics/settings.h
+        src/coreMechanics/playerCamera.cpp
+        src/coreMechanics/playerCamera.h
+        src/main.cpp
+        src/gameStates/gameState.h
+        src/gameStates/mainMenuState.h
+        src/gameStates/gameStateManager.h
 )
 target_link_libraries(game-c++ PRIVATE raylib)
