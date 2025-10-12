@@ -14,5 +14,9 @@ add_executable(game-c++
         stats.h
         shoot.cpp
         shoot.h
-        settings.cpp)
+        settings.cpp
+        settings.h
+        playerCamera.cpp
+        playerCamera.h
+)
 target_link_libraries(game-c++ PRIVATE raylib)

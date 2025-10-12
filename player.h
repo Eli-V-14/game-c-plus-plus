@@ -6,6 +6,7 @@
 #define PLAYER_H
 #include <vector>
 
+#include "playerCamera.h"
 #include "shoot.h"
 using namespace std;
 
@@ -14,16 +15,23 @@ public:
     bool charging;
     float startingDashX;
     float startingDashY;
-    float previousX;
-    float previousY;
     vector<Shoot> shots;
 
     bool isDashing = false;
     bool dashed = false;
 
     float dash = 1;
+    float dashDirX = 0;
+    float dashDirY = 0;
     float dashProgress = 0;
+
+    float crouchedHeight = 0;
+    float crouchProgress = 0;
     float startDashTime = 0;
+
+    bool showMirage = false;
+    float mirageX = 0;
+    float mirageY = 0;
 
     float speed = 7.0f;
     float maxDashCharge = 400.0f;
@@ -34,16 +42,21 @@ public:
     float getX() const;
     float getY() const;
 
+    float getCrouchHeight() const;
+
+    float getVelocityX() const;
+    float getVelocityY() const;
+
     void setHeight(float h=30);
     void setWidth(float w=30);
     float getHeight() const;
     float getWidth() const;
 
-    void update(float delta_time);
-    void updateMovement(float delta_time);
-    void updateAction(float delta_time);
+    void update(float delta_time, PlayerCamera& playerCamera);
+    void updateMovement(float delta_time, PlayerCamera& playerCamera);
+    void updateAction(float delta_time, PlayerCamera& playerCamera);
     void resetDashing();
-    void drawPlayer(float x, float y, float w, float h) const;
+    void drawPlayer(float xOffset, float yOffset) const;
 
     Rectangle getRect() const;
     Player(float x, float y, float w, float h);
@@ -54,6 +67,9 @@ public:
     float y;
     float w;
     float h;
+    float vx = 0;
+    float vy = 0;
+
 };
 
 

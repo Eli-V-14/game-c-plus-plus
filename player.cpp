@@ -3,7 +3,12 @@
 //
 #include <raylib.h>
 #include <iostream>
+#include <algorithm>
+#include <iomanip>
+
 #include "player.h"
+
+#include "playerCamera.h"
 #include "shoot.h"
 
 using namespace std;
@@ -48,45 +53,65 @@ void Player::setWidth(float player_width) {
     w = player_width;
 }
 
-void Player::drawPlayer(float x, float y, float w, float h) const {
-    DrawRectangle(x, y, w, h, ORANGE);
-    DrawBoundingBox({{x, y ,0}, {x+w, y+h, 0}}, BLUE);
+float Player::getCrouchHeight() const {
+    return crouchedHeight;
+}
+
+float Player::getVelocityX() const {
+    return vx;
+}
+
+float Player::getVelocityY() const {
+    return vy;
+}
+
+
+void Player::drawPlayer(float xOffset, float yOffset) const {
+    // DrawCircle(x, y + crouchedHeight, 5, PURPLE);
+    DrawRectangle(x - xOffset, y - yOffset + crouchedHeight, w, h - crouchedHeight, ORANGE);
+    DrawBoundingBox({{x - xOffset , y - yOffset + crouchedHeight,0}, {x - xOffset + w, y - yOffset + h, 0}}, BLUE);
+
+    if (showMirage) {
+        Color orange = {255, 165, 0, 128}; // semi-transparent
+        DrawRectangle(mirageX - xOffset, mirageY - yOffset, w, h, orange);
+    }
 }
 
 float dashEasing(float x) {
     return 1 - pow(1 - x, 17);
 }
 
-void Player::update(float delta_time) {
-    updateMovement(delta_time);
-    updateAction(delta_time);
+void Player::update(float delta_time, PlayerCamera& playerCamera) {
+    updateMovement(delta_time, playerCamera);
+    updateAction(delta_time, playerCamera);
 }
 
 void Player::resetDashing() {
     isDashing = false;
     dashProgress = 0;
     dash = 1;
-    previousX = 0;
-    previousY = 0;
 }
 
-void Player::updateMovement(float delta_time) {
+void Player::updateMovement(float delta_time, PlayerCamera& pc) {
     const double normalized = 1 / sqrt(2.0);
-
-    float dx = 0.0f;
-    float dy = 0.0f;
+    float xOffset = pc.camRect.x;
+    float yOffset = pc.camRect.y;
+    vx = 0;
+    vy = 0;
 
     bool released = IsKeyReleased(KEY_TAB);
 
-    if (IsKeyDown(KEY_W)) {
-        float angle = atan2(GetMouseY() - y - h/2, GetMouseX() - x - w/2);
-        dx = cos(angle);
-        dy = sin(angle);
+    if (IsKeyDown(KEY_W) && !isDashing) {
+        float worldMouseX = GetMouseX() + pc.camRect.x;
+        float worldMouseY = GetMouseY() + pc.camRect.y;
+        float angle = atan2(worldMouseY - (y + h / 2), worldMouseX - (x + w / 2));
+        vx = cos(angle);
+        vy = sin(angle);
     }
 
-    if (dx != 0 && dy != 0) {
-        dx *= normalized;
-        dy *= normalized;
+    if (vx != 0 && vy != 0) {
+        vx *= normalized;
+        vy *= normalized;
     }
 
     charging = IsKeyDown(KEY_TAB);
@@ -96,10 +121,18 @@ void Player::updateMovement(float delta_time) {
         if (dash > maxDashCharge) {
             dash = maxDashCharge;
         }
-        previousX = dx;
-        previousY = dy;
-        Color orange= {255, 165, 0, 128};
-        DrawRectangle(x+dx*dash, y+dy*dash, w, h, orange);
+        if (crouchProgress <= 1.0) {
+            crouchedHeight = h * 0.5 * dashEasing(crouchProgress);
+            crouchProgress += delta_time;
+        }
+        dashDirX = vx;
+        dashDirY = vy;
+
+        mirageX = x + dashDirX * dash;
+        mirageY = y + dashDirY * dash;
+        showMirage = true;
+    } else {
+        showMirage = false;
     }
 
     if (released && !isDashing) {
@@ -110,39 +143,36 @@ void Player::updateMovement(float delta_time) {
     }
 
     if (!charging && !isDashing) {
-        float vx = dx * speed;
-        float vy = dy * speed;
-
         float targetX = GetMouseX() - w/2;
         float targetY = GetMouseY() - h/2;
-
-        float distance = sqrt(pow(targetX - x, 2) + pow(targetY - y, 2));
+        float distance = sqrt(pow(targetX - x - xOffset, 2) + pow(targetY - y - yOffset, 2));
 
         if (distance >= 5) {
-            x += vx;
-            y += vy;
+            x += vx * speed;
+            y += vy * speed;
         }
     } else if (isDashing) {
+        crouchedHeight = 0;
+        crouchProgress = 0;
         if (dashProgress < 1.0f) {
-            float xDashProgress = previousX * dash * dashEasing(dashProgress);
-            float yDashProgress = previousY * dash * dashEasing(dashProgress);
-
-            if (abs(x - (startingDashX + xDashProgress)) < 5 && abs(y - (startingDashY + yDashProgress)) < 5) {
-                resetDashing();
-            }
-
-            x = startingDashX + xDashProgress;
-            y = startingDashY + yDashProgress;
+            float eased = dashEasing(dashProgress);
+            x = startingDashX + dashDirX * dash * eased;
+            y = startingDashY + dashDirY * dash * eased;
             dashProgress += delta_time / 0.5;
+
+            if (abs(x - (startingDashX + dashDirX * dash)) < 5 &&
+                abs(y - (startingDashY + dashDirY * dash)) < 5) {
+                resetDashing();
+                }
         } else {
             resetDashing();
         }
     }
 }
 
-void Player::updateAction(float delta_time) {
+void Player::updateAction(float delta_time, PlayerCamera& pc) {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !charging  && !isDashing) {
-        shots.emplace_back(x + w/2, y + h/2);
+        shots.emplace_back(x + w/2, y + h/2, pc);
     }
 
     for (auto it = shots.begin(); it != shots.end(); ) {

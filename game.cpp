@@ -1,50 +1,59 @@
-//
-// Created by Eli Vang on 9/26/2025.
-//
-
 #include <raylib.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <time.h>
-#include <math.h>
-#include <iostream>
-#include <string>
+#include <cmath>
+#include <ctime>
 #include "player.h"
 #include "mouse.h"
 #include "stats.h"
-#include "settings.cpp"
-
-using namespace std;
+#include "settings.h"
+#include "playerCamera.h"
 
 int main() {
-
-    Player p = Player(SCREEN_WIDTH/2 - 15, SCREEN_HEIGHT/2 - 25, 30, 50);
-
-
-    // Setting up rendering window
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Paint Ball Game");
+    // --- Initialize window ---
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Multiplayer Game");
     SetTargetFPS(FPS);
     srand(time(NULL));
 
-    while (!WindowShouldClose()) {
-        // update game logic should go here
-        Stats s;
-        Mouse m;
-        DrawBoundingBox({{1, 1, 0}, {SCREEN_WIDTH, SCREEN_HEIGHT, 0}}, PURPLE);
+    Player p(0, 0, 30, 50);
+    PlayerCamera pCamera(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+    Stats s;
+    // Mouse m;
 
+    // --- Main game loop ---
+    while (!WindowShouldClose()) {
+        float dt = GetFrameTime();
+
+        p.update(dt, pCamera);
+        pCamera.followPlayer(p.getX(), p.getY());
+        // --- Drawing ---
         BeginDrawing();
         ClearBackground(WHITE);
-        // everything we want to draw has to be done within Begin/End Drawing
-        float delta_time = GetFrameTime();
-        p.update(delta_time);
-        p.drawPlayer(p.getX(), p.getY(), p.getWidth(), p.getHeight());
+
+        int gridSize = 100; // spacing between lines
+        int worldSize = 6000; // total size of the grid (in world units)
+
+        // Draw vertical lines
+        for (int x = -worldSize; x <= worldSize; x += gridSize) {
+            DrawLine(x - pCamera.camRect.x, -worldSize - pCamera.camRect.y,
+                     x - pCamera.camRect.x, worldSize - pCamera.camRect.y, LIGHTGRAY);
+        }
+
+        // Draw horizontal lines
+        for (int y = -worldSize; y <= worldSize; y += gridSize) {
+            DrawLine(-worldSize - pCamera.camRect.x, y - pCamera.camRect.y,
+                     worldSize - pCamera.camRect.x, y - pCamera.camRect.y, LIGHTGRAY);
+        }
 
 
-
+        p.drawPlayer(pCamera.camRect.x, pCamera.camRect.y);
         // m.drawDirection(p.getX(), p.getY(), p.getWidth(), p.getHeight());
+
+
+        DrawRectangleLines(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, PURPLE);
         s.displayStats(p.getX(), p.getY());
+
         EndDrawing();
     }
+
     CloseWindow();
     return 0;
 }
