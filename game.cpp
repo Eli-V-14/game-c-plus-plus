@@ -14,7 +14,7 @@ int main() {
     srand(time(NULL));
 
     Player p(0, 0, 30, 50);
-    PlayerCamera pCamera(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
+    PlayerCamera pCamera(-SCREEN_WIDTH/2 - p.getWidth() / 2, -SCREEN_HEIGHT/2 - p.getHeight() / 2, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT);
     Stats s;
     // Mouse m;
 
@@ -24,6 +24,7 @@ int main() {
 
         p.update(dt, pCamera);
         pCamera.followPlayer(p.getX(), p.getY());
+
         // --- Drawing ---
         BeginDrawing();
         ClearBackground(WHITE);

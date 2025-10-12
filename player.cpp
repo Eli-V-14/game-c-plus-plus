@@ -67,13 +67,12 @@ float Player::getVelocityY() const {
 
 
 void Player::drawPlayer(float xOffset, float yOffset) const {
-    // DrawCircle(x, y + crouchedHeight, 5, PURPLE);
-    DrawRectangle(x - xOffset, y - yOffset + crouchedHeight, w, h - crouchedHeight, ORANGE);
-    DrawBoundingBox({{x - xOffset , y - yOffset + crouchedHeight,0}, {x - xOffset + w, y - yOffset + h, 0}}, BLUE);
+    DrawRectangle(x - xOffset - w/2, y - yOffset - h/2 + crouchedHeight, w, h - crouchedHeight, ORANGE);
+    DrawBoundingBox({{x - xOffset - w/2, y - yOffset - h/2 + crouchedHeight,0}, {x - xOffset + w/2, y - yOffset + h/2, 0}}, BLUE);
 
     if (showMirage) {
         Color orange = {255, 165, 0, 128}; // semi-transparent
-        DrawRectangle(mirageX - xOffset, mirageY - yOffset, w, h, orange);
+        DrawRectangle(mirageX - xOffset - w/2, mirageY - yOffset - h/2, w, h, orange);
     }
 }
 
@@ -104,7 +103,7 @@ void Player::updateMovement(float delta_time, PlayerCamera& pc) {
     if (IsKeyDown(KEY_W) && !isDashing) {
         float worldMouseX = GetMouseX() + pc.camRect.x;
         float worldMouseY = GetMouseY() + pc.camRect.y;
-        float angle = atan2(worldMouseY - (y + h / 2), worldMouseX - (x + w / 2));
+        float angle = atan2(worldMouseY - (y), worldMouseX - (x));
         vx = cos(angle);
         vy = sin(angle);
     }
@@ -143,10 +142,10 @@ void Player::updateMovement(float delta_time, PlayerCamera& pc) {
     }
 
     if (!charging && !isDashing) {
-        float targetX = GetMouseX() - w/2;
-        float targetY = GetMouseY() - h/2;
-        float distance = sqrt(pow(targetX - x - xOffset, 2) + pow(targetY - y - yOffset, 2));
-
+        float targetX = GetMouseX();
+        float targetY = GetMouseY();
+        float distance = sqrt(pow(targetX - x + xOffset, 2) + pow(targetY - y + yOffset, 2));
+        cout<<distance<<endl;
         if (distance >= 5) {
             x += vx * speed;
             y += vy * speed;
@@ -172,7 +171,7 @@ void Player::updateMovement(float delta_time, PlayerCamera& pc) {
 
 void Player::updateAction(float delta_time, PlayerCamera& pc) {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !charging  && !isDashing) {
-        shots.emplace_back(x + w/2, y + h/2, pc);
+        shots.emplace_back(x, y, pc);
     }
 
     for (auto it = shots.begin(); it != shots.end(); ) {

@@ -18,5 +18,7 @@ add_executable(game-c++
         settings.h
         playerCamera.cpp
         playerCamera.h
+        gameStateManager.cpp
+        gameStateManager.h
 )
 target_link_libraries(game-c++ PRIVATE raylib)
