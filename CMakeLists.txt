@@ -20,7 +20,10 @@ add_executable(game-c++
         src/coreMechanics/playerCamera.h
         src/main.cpp
         src/gameStates/gameState.h
-        src/gameStates/mainMenuState.h
+        src/gameStates/startScreenState.h
         src/gameStates/gameStateManager.h
+        src/gameStates/gameStateSkeleton.h
+        src/gameStates/gameType.h
+        src/gameStates/soloLobby.h
 )
 target_link_libraries(game-c++ PRIVATE raylib)

@@ -4,7 +4,7 @@
 
 #include "coreMechanics/settings.h"
 #include "gameStates/gameStateManager.h"
-#include "gameStates/mainMenuState.h"
+#include "gameStates/startScreenState.h"
 
 using namespace std;
 
@@ -14,14 +14,15 @@ int main() {
     GameStateManager gsm;
 
     // start with the main menu
-    gsm.changeState(new MainMenuState(&gsm));
+    gsm.changeState(new StartScreenState(&gsm));
 
     while (!WindowShouldClose()) {
         BeginDrawing();
         gsm.update(GetFrameTime());
         EndDrawing();
     }
-
     CloseWindow();
+
+
     return 0;
 }
