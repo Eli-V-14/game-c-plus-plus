@@ -69,14 +69,13 @@ public:
     }
 
     void checkCollisions() {
-         if (CheckCollisionBoxes(mouse, solo)) {
+        if (CheckCollisionBoxes(mouse, solo)) {
             startScreenSheet = LoadTexture("../images/soloHover.png");
         } else if (CheckCollisionBoxes(mouse, multi)) {
             startScreenSheet = LoadTexture("../images/multiHover.png");
         } else {
             startScreenSheet = LoadTexture("../images/gameType.png");
         }
-
     }
 
     void render() override {
@@ -96,7 +95,7 @@ public:
     }
 
     void handleInput() override {
-        if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             if (CheckCollisionBoxes(mouse, solo)) {
                 startScreenSheet = LoadTexture("../images/soloClick.png");
                 gsm->changeState(new SoloLobby(gsm));

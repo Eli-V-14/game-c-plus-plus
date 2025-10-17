@@ -25,5 +25,6 @@ add_executable(game-c++
         src/gameStates/gameStateSkeleton.h
         src/gameStates/gameType.h
         src/gameStates/soloLobby.h
+        src/gameStates/soloGame.h
 )
 target_link_libraries(game-c++ PRIVATE raylib)

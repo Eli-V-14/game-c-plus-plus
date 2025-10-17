@@ -10,12 +10,12 @@
 #include "../coreMechanics/settings.h"
 #include "gameState.h"
 #include "gameStateManager.h"
+#include "soloGame.h"
 
 
 class SoloLobby : public GameState {
 private:
     GameStateManager* gsm;
-    Texture2D backgroundSheet = {};
     int bgNumFrames = 0;
     int currentFrame = 0;
     float frameTime = 0;
@@ -29,35 +29,56 @@ private:
     Rectangle dest = {};
 
     BoundingBox mouse = {};
+    BoundingBox start = {};
 public:
     SoloLobby(GameStateManager* gsm) : gsm(gsm) {}
     void init() override {
 
-        backgroundSheet = LoadTexture("../images/defaultLobby.png");
-        startWidth = backgroundSheet.width;
-        startHeight = backgroundSheet.height;
+        lobbySheet = LoadTexture("../images/defaultLobby.png");
+        startWidth = lobbySheet.width;
+        startHeight = lobbySheet.height;
 
         source = {startWidth, 0, startWidth, startHeight};
         dest = {0, 0, static_cast<float>(SCREEN_WIDTH), static_cast<float>(SCREEN_HEIGHT)};
+        start = {{1277, 861, 0}, {1801, 1008, 0}};
     }
 
     void update(float dt) override {
         // update game logic
+        mouse = {{static_cast<float>(GetMouseX()), static_cast<float>(GetMouseY()), 0},
+            {static_cast<float>(GetMouseX() + 2.0), static_cast<float>(GetMouseY() + 2.0), 0}};
+    }
+
+    void checkCollisions() {
+        if (CheckCollisionBoxes(mouse, start)) {
+            lobbySheet = LoadTexture("../images/lobbyStartHover.png");
+        } else {
+            lobbySheet = LoadTexture("../images/defaultLobby.png");
+        }
     }
 
     void render() override {
         // render the screen
         // FIX ME
-        // DrawTexture(backgroundSheet, source, dest, WHITE);
+        // DrawTexture(lobbySheet, source, dest, WHITE);
 
-        DrawTexturePro(backgroundSheet, source, dest, {0,0}, 0.0f, WHITE);
+        DrawTexturePro(lobbySheet, source, dest, {0,0}, 0.0f, WHITE);
         // Used to check mouse location for collisions
-        // DrawBoundingBox(mouse, RED);
+        DrawBoundingBox(mouse, RED);
+        DrawBoundingBox(start, GREEN);
+
+        checkCollisions();
 
     }
 
     void handleInput() override {
         // handle inputs
+        if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
+            if (CheckCollisionBoxes(mouse, start)) {
+                lobbySheet = LoadTexture("../images/lobbyStartClick.png");
+                gsm->changeState(new SoloGame(gsm));
+            }
+        }
     }
 
     ~SoloLobby() override {
