@@ -19,11 +19,13 @@ Shoot::Shoot(float x, float y, PlayerCamera& pc) : x(x), y(y), pc(&pc){
 }
 
 void Shoot::drawShot() const {
+
+    // FIXME: This will need to be changed to display the image of the shot and not a box
     Vector2 start = { x - pc->camRect.x, y - pc->camRect.y };
     Vector2 end = { x - pc->camRect.x + cos(angle) * length, y - pc->camRect.y + sin(angle) * length };
 
     // displays the bounding of the shot
-    DrawRectangleRec({x - pc->camRect.x - length / 4, y - pc->camRect.y - length / 4, length / 2, length / 2}, BLUE);
+    // DrawRectangleRec({x - pc->camRect.x - length / 4, y - pc->camRect.y - length / 4, length / 2, length / 2}, BLUE);
     DrawLineEx(start, end, 8, ORANGE);
 }
 

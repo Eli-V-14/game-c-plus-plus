@@ -10,7 +10,7 @@
 #include "playerCamera.h"
 using namespace std;
 
-Enemy::Enemy(float x, float y, float w, float h) {
+Enemy::Enemy(float x, float y, float w, float h) : vx(0), vy(0), rect({}) {
     this->x = x;
     this->y = y;
     this->w = w;
@@ -72,8 +72,9 @@ void Enemy::updateMovement(float delta_time, float playerX, float playerY, Playe
 }
 
 void Enemy::drawEnemy(PlayerCamera& pc) const {
-    DrawRectangle(x - pc.camRect.x - w/2, y - pc.camRect.y - h/2, w, h, MAROON);
-    DrawBoundingBox({{x - pc.camRect.x - w/2, y - pc.camRect.y - h/2,0}, {x - pc.camRect.x + w/2, y - pc.camRect.y + h/2, 0}}, BLUE);
+    // FIXME: this will need to be changed so that the image of the enemy is displayed and not a box
+    DrawRectangle(x - pc.camRect.x - w/2, y - pc.camRect.y - h/2, w, h, DARKGREEN);
+    // DrawBoundingBox({{x - pc.camRect.x - w/2, y - pc.camRect.y - h/2,0}, {x - pc.camRect.x + w/2, y - pc.camRect.y + h/2, 0}}, BLUE);
 }
 
 Rectangle Enemy::getRect() const {

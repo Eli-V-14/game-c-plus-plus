@@ -67,6 +67,7 @@ float Player::getVelocityY() const {
 
 
 void Player::drawPlayer(float xOffset, float yOffset) const {
+    // FIXME: this will be changed so the player is drawn and not a box
     DrawRectangle(x - xOffset - w/2, y - yOffset - h/2 + crouchedHeight, w, h - crouchedHeight, ORANGE);
     DrawBoundingBox({{x - xOffset - w/2, y - yOffset - h/2 + crouchedHeight,0}, {x - xOffset + w/2, y - yOffset + h/2, 0}}, BLUE);
 
