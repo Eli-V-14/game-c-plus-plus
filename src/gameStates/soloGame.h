@@ -17,10 +17,10 @@
 #include "../coreMechanics/playerCamera.h"
 #include "../coreMechanics/enemy.h"
 
-class SoloGame : public GameState {
+class SoloGame final : public GameState {
 private:
     // add variables
-    const int MAX_ENEMIES = 20;
+    const int MAX_ENEMIES = 15;
 
     GameStateManager* gsm;
     PlayerCamera* pc;
@@ -66,7 +66,7 @@ public:
         }
     }
 
-    void checkShotCollision(vector<Shoot> ss, vector<Enemy> es) {
+    static void checkShotCollision(vector<Shoot>& ss, vector<Enemy>& es) {
         for (auto& e : es) {
             for (auto& s : ss) {
                 if (CheckCollisionRecs(e.getRect(), s.getRect())) {
