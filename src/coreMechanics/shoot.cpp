@@ -21,7 +21,8 @@ Shoot::Shoot(float x, float y, PlayerCamera& pc) : x(x), y(y), pc(&pc){
 void Shoot::drawShot() const {
     Vector2 start = { x - pc->camRect.x, y - pc->camRect.y };
     Vector2 end = { x - pc->camRect.x + cos(angle) * length, y - pc->camRect.y + sin(angle) * length };
-    DrawLineEx(start, end, 9, RED);
+    // DrawRectangleRec({x - pc->camRect.x, y - pc->camRect.y, cos(angle) * length, sin(angle) * length}, BLUE);
+    DrawLineEx(start, end, 8, ORANGE);
 }
 
 
@@ -41,6 +42,10 @@ void Shoot::update(float delta_time) {
 
 bool Shoot::isActive() const {
     return active;
+}
+
+Rectangle Shoot::getRect() const {
+    return { x - pc->camRect.x, y - pc->camRect.y, cos(angle) * length, sin(angle) * length };
 }
 
 

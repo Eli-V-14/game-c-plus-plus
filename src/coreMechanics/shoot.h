@@ -26,6 +26,7 @@ class Shoot {
     void drawShot() const;
     void update(float delta_time);
     bool isActive() const;
+    Rectangle getRect() const;
 };
 
 

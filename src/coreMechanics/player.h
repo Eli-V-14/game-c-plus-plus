@@ -33,9 +33,12 @@ public:
     float mirageX = 0;
     float mirageY = 0;
 
-    float speed = 7.0f;
+    float speed = 400.0f;
     float maxDashCharge = 400.0f;
     float dashMultiplier = 1300.0f;
+
+    float inputDelayTimer = 0.0f;
+    bool inputEnabled = false;
 
     void setX(float x);
     void setY(float y);
@@ -61,8 +64,7 @@ public:
     Rectangle getRect() const;
     Player(float x, float y, float w, float h);
 
-    private:
-
+private:
     float x;
     float y;
     float w;

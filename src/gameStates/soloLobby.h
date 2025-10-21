@@ -31,9 +31,9 @@ private:
     BoundingBox mouse = {};
     BoundingBox start = {};
 public:
-    SoloLobby(GameStateManager* gsm) : gsm(gsm) {}
+    explicit SoloLobby(GameStateManager* gsm) : gsm(gsm) {}
     void init() override {
-
+        // initialize core variables
         lobbySheet = LoadTexture("../images/defaultLobby.png");
         startWidth = lobbySheet.width;
         startHeight = lobbySheet.height;
@@ -63,9 +63,9 @@ public:
         // DrawTexture(lobbySheet, source, dest, WHITE);
 
         DrawTexturePro(lobbySheet, source, dest, {0,0}, 0.0f, WHITE);
-        // Used to check mouse location for collisions
-        DrawBoundingBox(mouse, RED);
-        DrawBoundingBox(start, GREEN);
+        // Used to check mouse location for collisions onto start box
+        // DrawBoundingBox(mouse, RED);
+        // DrawBoundingBox(start, GREEN);
 
         checkCollisions();
 

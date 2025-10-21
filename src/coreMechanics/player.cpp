@@ -81,6 +81,14 @@ float dashEasing(float x) {
 }
 
 void Player::update(float delta_time, PlayerCamera& playerCamera) {
+    if (!inputEnabled) {
+        inputDelayTimer += delta_time;
+        if (inputDelayTimer >= 1.0f) {
+            inputEnabled = true;
+        } else {
+            return;
+        }
+    }
     updateMovement(delta_time, playerCamera);
     updateAction(delta_time, playerCamera);
 }
@@ -92,7 +100,6 @@ void Player::resetDashing() {
 }
 
 void Player::updateMovement(float delta_time, PlayerCamera& pc) {
-    const double normalized = 1 / sqrt(2.0);
     float xOffset = pc.camRect.x;
     float yOffset = pc.camRect.y;
     vx = 0;
@@ -101,16 +108,11 @@ void Player::updateMovement(float delta_time, PlayerCamera& pc) {
     bool released = IsKeyReleased(KEY_TAB);
 
     if (IsKeyDown(KEY_W) && !isDashing) {
-        float worldMouseX = GetMouseX() + pc.camRect.x;
-        float worldMouseY = GetMouseY() + pc.camRect.y;
+        float worldMouseX = GetMouseX() + xOffset;
+        float worldMouseY = GetMouseY() + yOffset;
         float angle = atan2(worldMouseY - (y), worldMouseX - (x));
         vx = cos(angle);
         vy = sin(angle);
-    }
-
-    if (vx != 0 && vy != 0) {
-        vx *= normalized;
-        vy *= normalized;
     }
 
     charging = IsKeyDown(KEY_TAB);
@@ -145,10 +147,10 @@ void Player::updateMovement(float delta_time, PlayerCamera& pc) {
         float targetX = GetMouseX();
         float targetY = GetMouseY();
         float distance = sqrt(pow(targetX - x + xOffset, 2) + pow(targetY - y + yOffset, 2));
-        cout<<distance<<endl;
+        // cout<<distance<<endl;
         if (distance >= 5) {
-            x += vx * speed;
-            y += vy * speed;
+            x += vx * speed * delta_time;
+            y += vy * speed * delta_time;
         }
     } else if (isDashing) {
         crouchedHeight = 0;
