@@ -20,7 +20,7 @@ add_executable(game-c++
         src/coreMechanics/playerCamera.h
         src/main.cpp
         src/gameStates/gameState.h
-        src/gameStates/startScreenState.h
+        src/gameStates/startScreen.h
         src/gameStates/gameStateManager.h
         src/gameStates/gameStateSkeleton.h
         src/gameStates/gameType.h

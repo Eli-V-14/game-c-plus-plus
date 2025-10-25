@@ -10,6 +10,13 @@ PlayerCamera::PlayerCamera(float x, float y, float width, float height, float sc
     this->screenHeight = screenHeight;
 }
 
+Rectangle PlayerCamera::applyCamera(const Rectangle& rect) {
+    float scaleX = screenWidth / camRect.width;
+    float scaleY = screenHeight / camRect.height;
+
+    return Rectangle{(rect.x - camRect.x) * scaleX, (rect.y - camRect.y) * scaleY, rect.width * scaleX, rect.height * scaleY};
+}
+
 void PlayerCamera::followPlayer(float playerX, float playerY) {
     float deadZoneLeft   = camRect.x + camRect.width * 0.2f;
     float deadZoneRight  = camRect.x + camRect.width * 0.8f;

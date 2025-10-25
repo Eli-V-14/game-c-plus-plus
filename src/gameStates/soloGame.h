@@ -88,21 +88,46 @@ public:
         updateEnemies(dt, p->getX(), p->getY());
     }
 
+    void drawBackgroundLines() const {
+        // Get camera info
+        float camX = pc->camRect.x;
+        float camY = pc->camRect.y;
+        float camW = pc->camRect.width;
+        float camH = pc->camRect.height;
+        int screenW = pc->screenWidth;
+        int screenH = pc->screenHeight;
+
+        // The ratio of world-space size to screen-space pixels
+        float scaleX = screenW / camW;
+        float scaleY = screenH / camH;
+
+        // Convert spacing to screen-space (affected by zoom)
+        float screenSpacingX = 100.0 * scaleX;
+        float screenSpacingY = 100.0 * scaleY;
+
+        // The camera’s offset within a grid cell (so movement scrolls smoothly)
+        float offsetX = fmod(camX * scaleX, screenSpacingX);
+        float offsetY = fmod(camY * scaleY, screenSpacingY);
+
+
+        // Draw vertical lines
+        for (float x = -offsetX; x < screenW; x += screenSpacingX) {
+            DrawLine(x, 0, x, screenH, GRAY);
+        }
+
+        // Draw horizontal lines
+        for (float y = -offsetY; y < screenH; y += screenSpacingY) {
+            DrawLine(0, y, screenW, y, GRAY);
+        }
+    }
+
+
+
     void render() override {
         // render the screen
         // Draw vertical lines
         ClearBackground(WHITE);
-        for (int x = -worldSize; x <= worldSize; x += gridSize) {
-            DrawLine(x - pc->camRect.x, -worldSize - pc->camRect.y,
-                     x - pc->camRect.x, worldSize - pc->camRect.y, LIGHTGRAY);
-        }
-
-        // Draw horizontal lines
-        for (int y = -worldSize; y <= worldSize; y += gridSize) {
-            DrawLine(-worldSize - pc->camRect.x, y - pc->camRect.y,
-                     worldSize - pc->camRect.x, y - pc->camRect.y, LIGHTGRAY);
-        }
-
+        drawBackgroundLines();
 
         p->drawPlayer(pc->camRect.x, pc->camRect.y);
         // m.drawDirection(p.getX(), p.getY(), p.getWidth(), p.getHeight());

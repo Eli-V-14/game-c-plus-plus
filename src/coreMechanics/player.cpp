@@ -7,7 +7,7 @@
 #include <iomanip>
 
 #include "player.h"
-
+#include "settings.h"
 #include "playerCamera.h"
 #include "shoot.h"
 
@@ -68,7 +68,14 @@ float Player::getVelocityY() const {
 
 void Player::drawPlayer(float xOffset, float yOffset) const {
     // FIXME: this will be changed so the player is drawn and not a box
-    DrawRectangle(x - xOffset - w/2, y - yOffset - h/2 + crouchedHeight, w, h - crouchedHeight, ORANGE);
+    Texture2D sprite = LoadTexture("../images/idle_fire.png");
+    int numframes = 4;
+    float start_width = sprite.width / numframes;
+    float start_height = sprite.height;
+    Rectangle source = {start_width, 0, start_width, start_height};
+    Rectangle dest = {x - xOffset - start_width, y - yOffset - start_height, start_width * 3, start_height * 3};
+    DrawTexturePro(sprite, source, dest, {0,0}, 0.0, WHITE);
+    // DrawRectangle(x - xOffset - w/2, y - yOffset - h/2 + crouchedHeight, w, h - crouchedHeight, ORANGE);
     DrawBoundingBox({{x - xOffset - w/2, y - yOffset - h/2 + crouchedHeight,0}, {x - xOffset + w/2, y - yOffset + h/2, 0}}, BLUE);
 
     if (showMirage) {

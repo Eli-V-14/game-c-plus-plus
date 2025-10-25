@@ -47,11 +47,11 @@ public:
         frameTime = 0.2;
         timer = 0.0f;
 
-        startScreenSheet = LoadTexture("../images/gameTypeScreen.png");
+        startScreenSheet = LoadTexture("../images/type/gameTypeScreen.png");
         startWidth = startScreenSheet.width;
         startHeight = startScreenSheet.height;
 
-        cautionTape = LoadTexture("../images/caution.png");
+        cautionTape = LoadTexture("../images/type/caution.png");
 
 
         source = {startWidth, 0, startWidth, startHeight};
@@ -70,11 +70,11 @@ public:
 
     void checkCollisions() {
         if (CheckCollisionBoxes(mouse, solo)) {
-            startScreenSheet = LoadTexture("../images/soloHover.png");
+            startScreenSheet = LoadTexture("../images/type/soloHover.png");
         } else if (CheckCollisionBoxes(mouse, multi)) {
-            startScreenSheet = LoadTexture("../images/multiHover.png");
+            startScreenSheet = LoadTexture("../images/type/multiHover.png");
         } else {
-            startScreenSheet = LoadTexture("../images/gameType.png");
+            startScreenSheet = LoadTexture("../images/type/gameType.png");
         }
     }
 
@@ -97,10 +97,10 @@ public:
     void handleInput() override {
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             if (CheckCollisionBoxes(mouse, solo)) {
-                startScreenSheet = LoadTexture("../images/soloClick.png");
+                startScreenSheet = LoadTexture("../images/type/soloClick.png");
                 gsm->changeState(new SoloLobby(gsm));
             } else if (CheckCollisionBoxes(mouse, multi)) {
-                startScreenSheet = LoadTexture("../images/multiClick.png");
+                startScreenSheet = LoadTexture("../images/type/multiClick.png");
             }
         }
     }

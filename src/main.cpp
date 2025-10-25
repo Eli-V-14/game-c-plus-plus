@@ -4,7 +4,7 @@
 
 #include "coreMechanics/settings.h"
 #include "gameStates/gameStateManager.h"
-#include "gameStates/startScreenState.h"
+#include "gameStates/startScreen.h"
 
 using namespace std;
 

@@ -40,6 +40,8 @@ public:
     float inputDelayTimer = 0.0f;
     bool inputEnabled = false;
 
+    float pixelSize = 64;
+
     void setX(float x);
     void setY(float y);
     float getX() const;

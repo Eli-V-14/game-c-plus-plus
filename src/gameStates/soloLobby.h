@@ -34,7 +34,7 @@ public:
     explicit SoloLobby(GameStateManager* gsm) : gsm(gsm) {}
     void init() override {
         // initialize core variables
-        lobbySheet = LoadTexture("../images/defaultLobby.png");
+        lobbySheet = LoadTexture("../images/solo/defaultLobby.png");
         startWidth = lobbySheet.width;
         startHeight = lobbySheet.height;
 
@@ -51,9 +51,9 @@ public:
 
     void checkCollisions() {
         if (CheckCollisionBoxes(mouse, start)) {
-            lobbySheet = LoadTexture("../images/lobbyStartHover.png");
+            lobbySheet = LoadTexture("../images/solo/lobbyStartHover.png");
         } else {
-            lobbySheet = LoadTexture("../images/defaultLobby.png");
+            lobbySheet = LoadTexture("../images/solo/defaultLobby.png");
         }
     }
 
@@ -75,7 +75,7 @@ public:
         // handle inputs
         if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
             if (CheckCollisionBoxes(mouse, start)) {
-                lobbySheet = LoadTexture("../images/lobbyStartClick.png");
+                lobbySheet = LoadTexture("../images/solo/lobbyStartClick.png");
                 gsm->changeState(new SoloGame(gsm));
             }
         }

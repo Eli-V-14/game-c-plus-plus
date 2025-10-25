@@ -14,6 +14,7 @@ class PlayerCamera {
 
     PlayerCamera(float x, float y, float width, float height, float screenWidth, float screenHeight);
     void followPlayer(float playerX, float playerY);
+    Rectangle applyCamera(const Rectangle& rect);
 
     Rectangle camRect;
 
