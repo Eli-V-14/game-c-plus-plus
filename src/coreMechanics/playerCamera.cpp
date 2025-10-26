@@ -4,6 +4,8 @@
 
 #include "playerCamera.h"
 
+#include <cmath>
+
 PlayerCamera::PlayerCamera(float x, float y, float width, float height, float screenWidth, float screenHeight) {
     camRect = {x, y, width, height};
     this->screenWidth = screenWidth;
@@ -24,15 +26,15 @@ void PlayerCamera::followPlayer(float playerX, float playerY) {
     float deadZoneBottom = camRect.y + camRect.height * 0.7f;
 
     if (playerX < deadZoneLeft) {
-        camRect.x -= (deadZoneLeft - playerX);
+        camRect.x -= round(deadZoneLeft - playerX);
     } else if (playerX > deadZoneRight) {
-        camRect.x += (playerX - deadZoneRight);
+        camRect.x += round(playerX - deadZoneRight);
     }
 
     if (playerY < deadZoneTop) {
-        camRect.y -= (deadZoneTop - playerY);
+        camRect.y -= round(deadZoneTop - playerY);
     } else if (playerY > deadZoneBottom) {
-        camRect.y += (playerY - deadZoneBottom);
+        camRect.y += round(playerY - deadZoneBottom);
     }
 
 

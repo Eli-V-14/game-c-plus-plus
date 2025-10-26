@@ -25,7 +25,7 @@ private:
     GameStateManager* gsm;
     PlayerCamera* pc;
     Player* p;
-    // Stats* s;
+    Stats* stats;
 
     vector<Enemy> enemies;
 
@@ -41,29 +41,29 @@ public:
                             -SCREEN_HEIGHT / 2 - p->getHeight() / 2,
                             SCREEN_WIDTH, SCREEN_HEIGHT,
                             SCREEN_WIDTH, SCREEN_HEIGHT);
-        // s = new Stats();
+        stats = new Stats();
 
     }
-    void generateEnemy(float playerX, float playerY) {
-        mt19937 rng(random_device{}());
-        uniform_real_distribution<float> distAngle(0.0, 2.0f * PI);
-        uniform_real_distribution<float> distRadius(500, 700);
-        float angle = distAngle(rng);
-        float radius = distRadius(rng);
-
-        enemies.push_back(Enemy(playerX + cosf(angle) * radius,
-                                    playerY + sinf(angle) * radius,
-                                    30, 50));
-    }
+    // void generateEnemy(float playerX, float playerY) {
+    //     mt19937 rng(random_device{}());
+    //     uniform_real_distribution<float> distAngle(0.0, 2.0f * PI);
+    //     uniform_real_distribution<float> distRadius(500, 700);
+    //     float angle = distAngle(rng);
+    //     float radius = distRadius(rng);
+    //
+    //     enemies.push_back(Enemy(playerX + cosf(angle) * radius,
+    //                                 playerY + sinf(angle) * radius,
+    //                                 30, 50));
+    // }
 
     void updateEnemies(float dt, float playerX, float playerY) {
         for (auto& e : enemies) {
             e.update(dt, p->getX(), p->getY(), *pc);
         }
 
-        while (enemies.size() < MAX_ENEMIES) {
-            generateEnemy(playerX, playerY);
-        }
+        // while (enemies.size() < MAX_ENEMIES) {
+        //     generateEnemy(playerX, playerY);
+        // }
     }
 
     static void checkShotCollision(vector<Shoot>& ss, vector<Enemy>& es) {
@@ -81,7 +81,7 @@ public:
         ss.erase(remove_if(ss.begin(), ss.end(), [](const Shoot& s){ return !s.active; }), ss.end());
     }
 
-    void update(float dt) override {
+    void update(float dt) {
         // update game logic
         p->update(dt, *pc);
         pc->followPlayer(p->getX(), p->getY());
@@ -138,9 +138,8 @@ public:
 
         checkShotCollision(p->shots, enemies);
 
-
         DrawRectangleLines(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, PURPLE);
-        // s->displayStats(p->getX(), p->getY());
+        stats->displayStats(p->getX(), p->getY());
     }
 
     void handleInput() override {
@@ -151,7 +150,7 @@ public:
     ~SoloGame() override {
         delete pc;
         delete p;
-        // delete s;
+        delete stats;
     }
 };
 

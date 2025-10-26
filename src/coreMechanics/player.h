@@ -10,11 +10,18 @@
 #include "shoot.h"
 using namespace std;
 
+enum class PlayerAnimationState {
+    IDLE,
+    RUNNING,
+    WALKING,
+    // ,DASH
+};
+
 class Player {
 public:
-    bool charging;
-    float startingDashX;
-    float startingDashY;
+    bool charging = false;
+    float startingDashX = 0;
+    float startingDashY = 0;
     vector<Shoot> shots;
 
     bool isDashing = false;
@@ -33,38 +40,70 @@ public:
     float mirageX = 0;
     float mirageY = 0;
 
-    float speed = 400.0f;
+    float speed = 1000.0f;
     float maxDashCharge = 400.0f;
     float dashMultiplier = 1300.0f;
 
     float inputDelayTimer = 0.0f;
     bool inputEnabled = false;
 
-    float pixelSize = 64;
+    float pixelSize = 16;
+    bool facingRight = true;
 
-    void setX(float x);
-    void setY(float y);
-    float getX() const;
-    float getY() const;
+    void setX(const float x_val) {
+        x = x_val;
+    }
+    void setY(const float y_val) {
+        y = y_val;
+    }
+    float getX() const {
+        return x;
+    }
+    float getY() const {
+        return y;
+    }
 
-    float getCrouchHeight() const;
+    float getCrouchHeight() const {
+        return crouchedHeight;
+    }
 
-    float getVelocityX() const;
-    float getVelocityY() const;
+    float getVelocityX() const {
+        return vx;
+    }
+    float getVelocityY() const {
+        return vy;
+    }
 
-    void setHeight(float h=30);
-    void setWidth(float w=30);
-    float getHeight() const;
-    float getWidth() const;
+    void setHeight(const float height=30) {
+        h = height;
+    }
+    void setWidth(const float width=30) {
+        w = width;
+    }
+    float getHeight() const {
+        return h;
+    }
+    float getWidth() const {
+        return w;
+    }
 
-    void update(float delta_time, PlayerCamera& playerCamera);
+    void update(float dt, PlayerCamera& playerCamera);
+    void handleInput(float xOffset, float yOffset);
+    void handleDashCharge(float dt, PlayerCamera& playerCamera);
+    void handleDashMovement(float dt);
+    void handleNormalMovement(float dt, float xOffset, float yOffset);
+    void updateAnimationState(PlayerCamera& playerCamera);
+
     void updateMovement(float delta_time, PlayerCamera& playerCamera);
     void updateAction(float delta_time, PlayerCamera& playerCamera);
     void resetDashing();
-    void drawPlayer(float xOffset, float yOffset) const;
+    void drawPlayer(float xOffset, float yOffset);
+
 
     Rectangle getRect() const;
+
     Player(float x, float y, float w, float h);
+    ~Player();
 
 private:
     float x;
@@ -74,6 +113,17 @@ private:
     float vx = 0;
     float vy = 0;
 
+    Texture2D idleAnimation;
+    Texture2D walkAnimation;
+    Texture2D runAnimation;
+    Texture2D dashAnimation;
+
+    PlayerAnimationState animationState = PlayerAnimationState::IDLE;
+
+    int currentFrame = 0;
+    int numFrames = 4;
+    float frameTime = 0.1f;
+    float frameTimer = 0.0f;
 };
 
 

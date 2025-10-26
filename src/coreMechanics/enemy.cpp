@@ -64,7 +64,7 @@ void Enemy::updateMovement(float delta_time, float playerX, float playerY, Playe
     vy = sin(angle);
 
     float distance = sqrt(pow(playerX - x, 2) + pow(playerY - y, 2));
-    cout<<distance<<endl;
+    // cout<<distance<<endl;
     if (distance >= 40) {
         x += vx * speed * delta_time;
         y += vy * speed * delta_time;
