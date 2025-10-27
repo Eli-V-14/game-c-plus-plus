@@ -14,7 +14,8 @@ enum class PlayerAnimationState {
     IDLE,
     RUNNING,
     WALKING,
-    // ,DASH
+    DASHING,
+    CHARGING
 };
 
 class Player {
@@ -27,7 +28,7 @@ public:
     bool isDashing = false;
     bool dashed = false;
 
-    float dash = 1;
+    float dash = 10;
     float dashDirX = 0;
     float dashDirY = 0;
     float dashProgress = 0;
@@ -40,9 +41,10 @@ public:
     float mirageX = 0;
     float mirageY = 0;
 
-    float speed = 1000.0f;
-    float maxDashCharge = 400.0f;
-    float dashMultiplier = 1300.0f;
+    float speed = 50.0f;
+    float maxDashCharge = 800.0f;
+    float dashMultiplier = 100.0f;
+    float maxDashDistance = 500.0f;
 
     float inputDelayTimer = 0.0f;
     bool inputEnabled = false;
@@ -87,15 +89,15 @@ public:
         return w;
     }
 
-    void update(float dt, PlayerCamera& playerCamera);
+    void update(float dt, PlayerCamera& pc);
     void handleInput(float xOffset, float yOffset);
-    void handleDashCharge(float dt, PlayerCamera& playerCamera);
+    void handleDashCharge(float dt, const PlayerCamera& pc);
     void handleDashMovement(float dt);
     void handleNormalMovement(float dt, float xOffset, float yOffset);
-    void updateAnimationState(PlayerCamera& playerCamera);
+    void updateAnimationState(PlayerCamera& pc);
 
-    void updateMovement(float delta_time, PlayerCamera& playerCamera);
-    void updateAction(float delta_time, PlayerCamera& playerCamera);
+    void updateMovement(float dt, PlayerCamera& pc);
+    void updateAction(float dt, PlayerCamera& pc);
     void resetDashing();
     void drawPlayer(float xOffset, float yOffset);
 
@@ -116,6 +118,7 @@ private:
     Texture2D idleAnimation;
     Texture2D walkAnimation;
     Texture2D runAnimation;
+    Texture2D chargeAnimation;
     Texture2D dashAnimation;
 
     PlayerAnimationState animationState = PlayerAnimationState::IDLE;

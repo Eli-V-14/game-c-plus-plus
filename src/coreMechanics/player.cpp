@@ -1,5 +1,5 @@
 //
-// Created by vanget on 10/6/2025.
+// Created by Eli-V-14 on 10/6/2025.
 //
 #include <raylib.h>
 #include <iostream>
@@ -15,21 +15,24 @@ using namespace std;
 
 Player::Player(float x, float y, float w, float h) : x(x), y(y), w(w), h(h) {
     idleAnimation = LoadTexture("../images/player/roninIdleFront16.png");
-    runAnimation = LoadTexture("../images/player/roninRunningFront16.png");
-    dashAnimation = LoadTexture("../images/player/roninDashingFront16.png");
-    walkAnimation = LoadTexture("../images/player/roninWalkingFront16.png");
+    runAnimation = LoadTexture("../images/player/roninRunFront16.png");
+    walkAnimation = LoadTexture("../images/player/roninWalkFront16.png");
+    chargeAnimation = LoadTexture("../images/player/roninChargeFront16.png");
+    dashAnimation = LoadTexture("../images/player/roninDashFront16.png");
 }
 
 Player::~Player() {
     UnloadTexture(idleAnimation);
     UnloadTexture(runAnimation);
-    UnloadTexture(dashAnimation);
+    UnloadTexture(chargeAnimation);
     UnloadTexture(walkAnimation);
 }
 
+float dashEasing(float x) {
+    return 1 - pow(1 - x, 17);
+}
 
-void Player::drawPlayer(float xOffset, float yOffset) {
-    // FIXME: this will be changed so the player is drawn and not a box
+void Player::drawPlayer(const float xOffset, const float yOffset) {
     Texture2D currentAnimation;
     switch (animationState) {
         case PlayerAnimationState::WALKING:
@@ -40,47 +43,60 @@ void Player::drawPlayer(float xOffset, float yOffset) {
         case PlayerAnimationState::RUNNING:
             currentAnimation = runAnimation;
             frameTime = 0.1f / 2.5f;
-            speed = 1200.0f;
+            speed = 800.0f;
             break;
-        // case PlayerAnimationState::DASH:
-        //     currentAnimation = dashAnimation;
-        //     frameTime = 0.1/FIXME;
-        //     break;
+        case PlayerAnimationState::CHARGING:
+            currentAnimation = chargeAnimation;
+            frameTime = 0.2f;
+            speed = 300.0f;
+            break;
+        case PlayerAnimationState::DASHING:
+            currentAnimation = dashAnimation;
+            frameTime = 0.1;
+            speed = 300.0f;
+            break;
         default:
             currentAnimation = idleAnimation;
             frameTime = 0.1f;
+            speed = 300.0f;
             break;
     }
 
     numFrames = currentAnimation.width / pixelSize;
-    float frameWidth = currentAnimation.width / numFrames;
-    float frameHeight = currentAnimation.height;
+    const float frameWidth = currentAnimation.width / numFrames;
+    const float frameHeight = currentAnimation.height;
 
-    // cout<<frameWidth<<" "<<frameHeight<<endl;
+    if (animationState != PlayerAnimationState::CHARGING) {
+        frameTime += GetFrameTime();
+        if (frameTimer >= frameTime) {
+            frameTimer -= frameTime;
+            currentFrame = (currentFrame + 1) % numFrames;
+        }
+    }
 
     Rectangle source = {frameWidth * currentFrame, 0, frameWidth, frameHeight};
     if (!facingRight) source.width =  -frameWidth;
-    float scaledWidth = frameWidth * 8;
-    float scaledHeight = frameHeight * 8;
 
-    float drawX = round(x - xOffset);
-    float drawY = round(y - yOffset);
+    const float scaledWidth = frameWidth * 8;
+    const float scaledHeight = frameHeight * 8;
 
-    Rectangle dest = {drawX, drawY, scaledWidth, scaledHeight};
-    Vector2 origin = {scaledWidth / 2, scaledHeight / 2};
+    const float drawX = round(x - xOffset);
+    const float drawY = round(y - yOffset);
+
+    const Rectangle dest = {drawX, drawY, scaledWidth, scaledHeight};
+    const Vector2 origin = {scaledWidth / 2, scaledHeight / 2};
     SetTextureFilter(currentAnimation, TEXTURE_FILTER_POINT);
     DrawTexturePro(currentAnimation, source, dest, origin, 0.0f, WHITE);
 
     DrawBoundingBox({{x - xOffset - scaledWidth/4, y - yOffset - scaledHeight/2 + crouchedHeight,0},
                 {x - xOffset + scaledWidth/4, y - yOffset + scaledHeight/2, 0}}, GREEN);
     if (showMirage) {
-        Color orange = {255, 165, 0, 128}; // semi-transparent
-        DrawRectangle(mirageX - xOffset - w/2, mirageY - yOffset - h/2, w, h, orange);
+        const Texture2D mirage = LoadTexture("../images/player/roninIdleFront16.png");
+        Rectangle mirageSource = {frameWidth, 0, frameWidth, frameHeight};
+        if (!facingRight) mirageSource.width =  -frameWidth;
+        const Rectangle mirageDest = {mirageX - xOffset - w/2, mirageY - yOffset - h/2, scaledWidth, scaledHeight};
+        DrawTexturePro(mirage, mirageSource, mirageDest, origin, 0.0f, {255, 255, 255, 128});
     }
-}
-
-float dashEasing(float x) {
-    return 1 - pow(1 - x, 17);
 }
 
 void Player::update(float delta_time, PlayerCamera& playerCamera) {
@@ -99,7 +115,7 @@ void Player::resetDashing() {
     dash = 1;
 }
 
-void Player::handleInput(float xOffset, float yOffset) {
+void Player::handleInput(const float xOffset, const float yOffset) {
     // Reset velocity each frame
     vx = 0;
     vy = 0;
@@ -112,7 +128,7 @@ void Player::handleInput(float xOffset, float yOffset) {
         if (IsKeyDown(KEY_D)) vx += 1;
 
         // Normalize diagonal movement
-        float len = sqrt(vx * vx + vy * vy);
+        const float len = sqrt(vx * vx + vy * vy);
         if (len > 0) {
             vx /= len;
             vy /= len;
@@ -125,10 +141,10 @@ void Player::handleInput(float xOffset, float yOffset) {
     // dash charging
     charging = IsKeyDown(KEY_TAB);
     if (IsKeyReleased(KEY_TAB) && !isDashing) {
-        float worldMouseX = GetMouseX() + xOffset;
-        float worldMouseY = GetMouseY() + yOffset;
+        const float worldMouseX = GetMouseX() + xOffset;
+        const float worldMouseY = GetMouseY() + yOffset;
 
-        float angle = atan2(worldMouseY - y, worldMouseX - x);
+        const float angle = atan2(worldMouseY - y, worldMouseX - x);
         dashDirX = cos(angle);
         dashDirY = sin(angle);
 
@@ -140,62 +156,87 @@ void Player::handleInput(float xOffset, float yOffset) {
     }
 }
 
-void Player::handleDashCharge(float delta_time, PlayerCamera& pc) {
+void Player::handleDashCharge(const float dt, const PlayerCamera& pc) {
     if (charging && !isDashing) {
-        dash = min(dash + delta_time * dashMultiplier, maxDashCharge);
+        dash = min(dash + dt * (dashMultiplier / 0.8f), maxDashCharge);
 
         if (crouchProgress <= 1.0f) {
             crouchedHeight = h * 0.5f * dashEasing(crouchProgress);
-            crouchProgress += delta_time;
+            crouchProgress += dt;
         }
 
-        // --- FIX: use world position of the mouse ---
-        float worldMouseX = GetMouseX() + pc.camRect.x;
-        float worldMouseY = GetMouseY() + pc.camRect.y;
+        const float worldMouseX = GetMouseX() + pc.camRect.x;
+        const float worldMouseY = GetMouseY() + pc.camRect.y;
 
-        float dx = worldMouseX - x;
-        float dy = worldMouseY - y;
-        float len = sqrt(dx * dx + dy * dy);
+        const float dx = worldMouseX - x;
+        const float dy = worldMouseY - y;
+        const float len = sqrt(dx * dx + dy * dy);
         if (len > 0) {
             dashDirX = dx / len;
             dashDirY = dy / len;
         }
 
-        // Mirage now points toward the mouse in world space
-        mirageX = x + dashDirX * dash;
-        mirageY = y + dashDirY * dash;
+        if (dashDirX > 0) facingRight = true;
+        else if (dashDirX < 0) facingRight = false;
+
+        // Compute intended dash distance and clamp
+        const float intendedDistance = dash * 5.0f; // scale for charge
+        const float distance = std::min(intendedDistance, maxDashDistance);
+
+        // Set mirage position along the clamped direction
+        mirageX = x + dashDirX * distance;
+        mirageY = y + dashDirY * distance;
         showMirage = true;
+
+        float chargeFraction = dash / maxDashCharge;
+        if (chargeFraction > 1.0f) chargeFraction = 1.0f;
+        const float eased = dashEasing(chargeFraction);
+
+        numFrames = chargeAnimation.width / pixelSize;
+        currentFrame = min(static_cast<int>(eased * (numFrames - 1)), numFrames - 1);
     } else {
         showMirage = false;
     }
 }
 
-void Player::handleDashMovement(float delta_time) {
+void Player::handleDashMovement(const float dt) {
     if (!isDashing) return;
 
     crouchedHeight = 0;
     crouchProgress = 0;
 
     if (dashProgress < 1.0f) {
-        float eased = dashEasing(dashProgress);
-        x = startingDashX + dashDirX * dash * eased;
-        y = startingDashY + dashDirY * dash * eased;
-        dashProgress += delta_time / 0.5f;
+        // Progress the dash (0 → 1)
+        dashProgress += dt * 2.0f;
+        if (dashProgress > 1.0f) dashProgress = 1.0f;
 
-        bool nearTarget = fabs(x - (startingDashX + dashDirX * dash)) < 5 &&
-                          fabs(y - (startingDashY + dashDirY * dash)) < 5;
+        // Apply easing
+        const float eased = dashEasing(dashProgress);
+
+        // Compute actual distance with clamp
+        const float intendedDistance = dash * 5.0f;
+        const float distance = std::min(intendedDistance, maxDashDistance);
+
+        // Update player position
+        const float addedX = dashDirX * distance;
+        const float addedY = dashDirY * distance;
+        x = startingDashX + addedX * eased;
+        y = startingDashY + addedY * eased;
+
+        const bool nearTarget = fabs(x - (startingDashX + addedX)) < 5 &&
+                          fabs(y - (startingDashY + addedY)) < 5;
         if (nearTarget) resetDashing();
     } else {
         resetDashing();
     }
 }
 
-void Player::handleNormalMovement(float delta_time, float xOffset, float yOffset) {
+void Player::handleNormalMovement(const float dt, float xOffset, float yOffset) {
     if (charging || isDashing) return;
 
     if (fabs(vx) > 0.01f || fabs(vy) > 0.01f) {
-        x += vx * speed * delta_time;
-        y += vy * speed * delta_time;
+        x += vx * speed * dt;
+        y += vy * speed * dt;
     }
 }
 
@@ -204,7 +245,10 @@ void Player::updateAnimationState(PlayerCamera& pc) {
     //     animationState = PlayerAnimationState::DASH;
     // }
     // else
-    if ((fabs(vx) > 0.1f || fabs(vy) > 0.1f) && IsKeyDown(KEY_LEFT_SHIFT)) {
+    if (IsKeyDown(KEY_TAB)) {
+        animationState = PlayerAnimationState::CHARGING;
+    }
+    else if ((fabs(vx) > 0.1f || fabs(vy) > 0.1f) && IsKeyDown(KEY_LEFT_SHIFT)) {
         animationState = PlayerAnimationState::RUNNING;
     }
     else if (fabs(vx) > 0.1f || fabs(vy) > 0.1f) {
@@ -216,18 +260,18 @@ void Player::updateAnimationState(PlayerCamera& pc) {
 }
 
 
-void Player::updateMovement(float delta_time, PlayerCamera& pc) {
-    float xOffset = pc.camRect.x;
-    float yOffset = pc.camRect.y;
+void Player::updateMovement(const float dt, PlayerCamera& pc) {
+    const float xOffset = pc.camRect.x;
+    const float yOffset = pc.camRect.y;
 
     handleInput(xOffset, yOffset);
-    handleDashCharge(delta_time, pc);
-    handleDashMovement(delta_time);
-    handleNormalMovement(delta_time, xOffset, yOffset);
+    handleDashCharge(dt, pc);
+    handleDashMovement(dt);
+    handleNormalMovement(dt, xOffset, yOffset);
     updateAnimationState(pc);
 }
 
-void Player::updateAction(float delta_time, PlayerCamera& pc) {
+void Player::updateAction(float dt, PlayerCamera& pc) {
 
 
     // Shots being removed from game.
