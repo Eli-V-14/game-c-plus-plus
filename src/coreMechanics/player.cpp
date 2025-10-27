@@ -14,18 +14,31 @@
 using namespace std;
 
 Player::Player(float x, float y, float w, float h) : x(x), y(y), w(w), h(h) {
-    idleAnimation = LoadTexture("../images/player/roninIdleFront16.png");
-    runAnimation = LoadTexture("../images/player/roninRunFront16.png");
-    walkAnimation = LoadTexture("../images/player/roninWalkFront16.png");
+    idleFront = LoadTexture("../images/player/roninIdleFront16.png");
+    idleBack = LoadTexture("../images/player/roninIdleBack16.png");
+
+    runFront = LoadTexture("../images/player/roninRunFront16.png");
+    runBack = LoadTexture("../images/player/roninRunBack16.png");
+
+    walkFront = LoadTexture("../images/player/roninWalkFront16.png");
+    walkBack = LoadTexture("../images/player/roninWalkBack16.png");
+
     chargeAnimation = LoadTexture("../images/player/roninChargeFront16.png");
     dashAnimation = LoadTexture("../images/player/roninDashFront16.png");
 }
 
 Player::~Player() {
-    UnloadTexture(idleAnimation);
-    UnloadTexture(runAnimation);
+    UnloadTexture(idleFront);
+    UnloadTexture(idleBack);
+
+    UnloadTexture(walkFront);
+    UnloadTexture(walkBack);
+
+    UnloadTexture(runFront);
+    UnloadTexture(runBack);
+
     UnloadTexture(chargeAnimation);
-    UnloadTexture(walkAnimation);
+    UnloadTexture(dashAnimation);
 }
 
 float dashEasing(float x) {
@@ -36,12 +49,12 @@ void Player::drawPlayer(const float xOffset, const float yOffset) {
     Texture2D currentAnimation;
     switch (animationState) {
         case PlayerAnimationState::WALKING:
-            currentAnimation = walkAnimation;
+            currentAnimation = facingFront ? walkFront : walkBack;
             frameTime = 0.2f;
             speed = 300.0f;
             break;
         case PlayerAnimationState::RUNNING:
-            currentAnimation = runAnimation;
+            currentAnimation = facingFront ? runFront : runBack;
             frameTime = 0.1f / 2.5f;
             speed = 800.0f;
             break;
@@ -56,7 +69,7 @@ void Player::drawPlayer(const float xOffset, const float yOffset) {
             speed = 300.0f;
             break;
         default:
-            currentAnimation = idleAnimation;
+            currentAnimation = facingFront ? idleFront : idleBack;
             frameTime = 0.1f;
             speed = 300.0f;
             break;
@@ -136,6 +149,9 @@ void Player::handleInput(const float xOffset, const float yOffset) {
         // records last horizontal facing direction
         if (vx > 0) facingRight = true;
         else if (vx < 0) facingRight = false;
+
+        if (vy > 0) facingFront = true;
+        else if (vy < 0) facingFront = false;
     }
 
     // dash charging

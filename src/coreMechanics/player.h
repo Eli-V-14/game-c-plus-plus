@@ -51,6 +51,7 @@ public:
 
     float pixelSize = 16;
     bool facingRight = true;
+    bool facingFront = true;
 
     void setX(const float x_val) {
         x = x_val;
@@ -115,9 +116,15 @@ private:
     float vx = 0;
     float vy = 0;
 
-    Texture2D idleAnimation;
-    Texture2D walkAnimation;
-    Texture2D runAnimation;
+    Texture2D idleFront;
+    Texture2D idleBack;
+
+    Texture2D walkFront;
+    Texture2D walkBack;
+
+    Texture2D runFront;
+    Texture2D runBack;
+
     Texture2D chargeAnimation;
     Texture2D dashAnimation;
 
