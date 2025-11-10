@@ -2,29 +2,35 @@
 // Created by Eli-V-14 on 10/6/2025.
 //
 #include <raylib.h>
-#include <iostream>
 #include <algorithm>
 #include <iomanip>
 
 #include "player.h"
-#include "settings.h"
 #include "playerCamera.h"
-#include "shoot.h"
 
 using namespace std;
 
-Player::Player(float x, float y, float w, float h) : x(x), y(y), w(w), h(h) {
-    idleFront = LoadTexture("../images/player/roninIdleFront16.png");
-    idleBack = LoadTexture("../images/player/roninIdleBack16.png");
+Player::Player(const float x, const float y, const float w, const float h) : x(x), y(y), w(w), h(h) {
+    idleFront = LoadTexture("../images/player/roninIdleFSheet.png");
+    idleBack = LoadTexture("../images/player/roninIdleBSheet.png");
 
-    runFront = LoadTexture("../images/player/roninRunFront16.png");
-    runBack = LoadTexture("../images/player/roninRunBack16.png");
+    runFront = LoadTexture("../images/player/roninRunFSheet.png");
+    runBack = LoadTexture("../images/player/roninRunBSheet.png");
 
-    walkFront = LoadTexture("../images/player/roninWalkFront16.png");
-    walkBack = LoadTexture("../images/player/roninWalkBack16.png");
+    walkFront = LoadTexture("../images/player/roninWalkFSheet.png");
+    walkBack = LoadTexture("../images/player/roninWalkBSheet.png");
 
-    chargeAnimation = LoadTexture("../images/player/roninChargeFront16.png");
-    dashAnimation = LoadTexture("../images/player/roninDashFront16.png");
+    chargeFront = LoadTexture("../images/player/roninChargeFSheet.png");
+    chargeBack = LoadTexture("../images/player/roninChargeBSheet.png");
+
+    holdIdleFront = LoadTexture("../images/player/roninIdleHoldFSheet.png");
+    holdIdleBack = LoadTexture("../images/player/roninIdleHoldBSheet.png");
+
+    holdWalkFront = LoadTexture("../images/player/roninWalkHoldFSheet.png");
+    holdWalkBack = LoadTexture("../images/player/roninWalkHoldBSheet.png");
+
+    mirageTexture = LoadTexture("../images/player/roninIdleFSheet.png");
+    weapon = LoadTexture("../images/player/finnSoulSword.png");
 }
 
 Player::~Player() {
@@ -37,50 +43,68 @@ Player::~Player() {
     UnloadTexture(runFront);
     UnloadTexture(runBack);
 
-    UnloadTexture(chargeAnimation);
-    UnloadTexture(dashAnimation);
+    UnloadTexture(chargeFront);
+    UnloadTexture(chargeBack);
+
+    UnloadTexture(holdIdleFront);
+    UnloadTexture(holdIdleBack);
+
+    UnloadTexture(mirageTexture);
+    UnloadTexture(weapon);
 }
 
-float dashEasing(float x) {
+float dashEasing(const float x) {
     return 1 - pow(1 - x, 17);
 }
 
-void Player::drawPlayer(const float xOffset, const float yOffset) {
-    Texture2D currentAnimation;
+Texture2D& Player::getCurrentAnimation() {
     switch (animationState) {
-        case PlayerAnimationState::WALKING:
-            currentAnimation = facingFront ? walkFront : walkBack;
-            frameTime = 0.2f;
-            speed = 300.0f;
-            break;
-        case PlayerAnimationState::RUNNING:
-            currentAnimation = facingFront ? runFront : runBack;
-            frameTime = 0.1f / 2.5f;
-            speed = 800.0f;
-            break;
-        case PlayerAnimationState::CHARGING:
-            currentAnimation = chargeAnimation;
-            frameTime = 0.2f;
-            speed = 300.0f;
-            break;
-        case PlayerAnimationState::DASHING:
-            currentAnimation = dashAnimation;
-            frameTime = 0.1;
-            speed = 300.0f;
-            break;
-        default:
-            currentAnimation = facingFront ? idleFront : idleBack;
-            frameTime = 0.1f;
-            speed = 300.0f;
-            break;
+        case PlayerAnimationState::WALKING:  speed = 300; frameTime = 0.2f;
+            return equipped ? (facingFront ? holdWalkFront : holdWalkBack) : (facingFront ? walkFront : walkBack);
+        case PlayerAnimationState::RUNNING:  speed = 800; frameTime = 0.04f;
+            equipped = false;
+            return facingFront ? runFront : runBack;
+        case PlayerAnimationState::CHARGING: speed = 300; frameTime = 0.2f;
+            equipped = false;
+            return facingFront ? chargeFront : chargeBack;
+        default: speed = 300; frameTime = 0.1f;
+            return equipped ? (facingFront ? holdIdleFront : holdIdleBack) : (facingFront ? idleFront : idleBack);
     }
+}
+void Player::drawMirage(float frameWidth, float xOffset, float yOffset, Vector2 origin, float scaledWidth, float scaledHeight) const {
+    Rectangle mirHeadSrc  = {frameWidth, 0,  frameWidth, 16};
+    Rectangle mirHandsSrc = {frameWidth, 16, frameWidth, 16};
+    Rectangle mirBodySrc  = {frameWidth, 32, frameWidth, 16};
+    if (!facingRight) {
+        mirHeadSrc.width = -frameWidth;
+        mirHandsSrc.width = -frameWidth;
+        mirBodySrc.width = -frameWidth;
+    }
+    const Rectangle mirageDest = {mirageX - xOffset - w/2, mirageY - yOffset - h/2, scaledWidth, scaledHeight};
+    DrawTexturePro(mirageTexture, mirBodySrc, mirageDest, origin, 0.0f, {255, 255, 255, 128});
+    DrawTexturePro(mirageTexture, mirHandsSrc, mirageDest, origin, 0.0f,  {255, 255, 255, 128});
+    DrawTexturePro(mirageTexture, mirHeadSrc, mirageDest, origin, 0.0f,  {255, 255, 255, 128});
+}
+
+void Player::drawWeapon(float xOffset, float yOffset) const {
+    float ww = weapon.width;
+    float wh = weapon.height;
+    float scale = 5.0f;
+    Rectangle swordSrc = {0, 0, ww, wh};
+    const Rectangle weaponDest = {x - xOffset, y - yOffset, ww * scale, wh * scale};
+    Vector2 wOrigin = {ww * scale / 2, wh * scale / 2};
+    DrawTexturePro(weapon, swordSrc, weaponDest, wOrigin, facingRight ? -45.0f : 45.0f, WHITE);
+}
+
+void Player::drawPlayer(const float xOffset, const float yOffset) {
+    const Texture2D currentAnimation = getCurrentAnimation();
 
     numFrames = currentAnimation.width / pixelSize;
-    const float frameWidth = currentAnimation.width / numFrames;
-    const float frameHeight = currentAnimation.height;
+    const float frameWidth = pixelSize;
+    const float frameHeight = pixelSize;
 
     if (animationState != PlayerAnimationState::CHARGING) {
-        frameTime += GetFrameTime();
+        frameTimer += GetFrameTime();
         if (frameTimer >= frameTime) {
             frameTimer -= frameTime;
             currentFrame = (currentFrame + 1) % numFrames;
@@ -96,30 +120,42 @@ void Player::drawPlayer(const float xOffset, const float yOffset) {
     const float drawX = round(x - xOffset);
     const float drawY = round(y - yOffset);
 
-    const Rectangle dest = {drawX, drawY, scaledWidth, scaledHeight};
     const Vector2 origin = {scaledWidth / 2, scaledHeight / 2};
-    SetTextureFilter(currentAnimation, TEXTURE_FILTER_POINT);
-    DrawTexturePro(currentAnimation, source, dest, origin, 0.0f, WHITE);
+    const Rectangle dest = {drawX, drawY, scaledWidth, scaledHeight};
+
+    Rectangle headSrc  = {frameWidth * currentFrame, 0,  frameWidth, 16};
+    Rectangle handsSrc = {frameWidth * currentFrame, 16, frameWidth, 16};
+    Rectangle bodySrc  = {frameWidth * currentFrame, 32, frameWidth, 16};
+
+    if (!facingRight) {
+        headSrc.width = -frameWidth;
+        handsSrc.width = -frameWidth;
+        bodySrc.width = -frameWidth;
+    }
+
+    DrawTexturePro(currentAnimation, bodySrc, dest, origin, 0.0f, WHITE);
+    DrawTexturePro(currentAnimation, handsSrc, dest, origin, 0.0f, WHITE);
+    if (equipped) {
+        drawWeapon(xOffset, yOffset + 25);
+    }
+    DrawTexturePro(currentAnimation, headSrc, dest, origin, 0.0f, WHITE);
 
     DrawBoundingBox({{x - xOffset - scaledWidth/4, y - yOffset - scaledHeight/2 + crouchedHeight,0},
                 {x - xOffset + scaledWidth/4, y - yOffset + scaledHeight/2, 0}}, GREEN);
+
     if (showMirage) {
-        const Texture2D mirage = LoadTexture("../images/player/roninIdleFront16.png");
-        Rectangle mirageSource = {frameWidth, 0, frameWidth, frameHeight};
-        if (!facingRight) mirageSource.width =  -frameWidth;
-        const Rectangle mirageDest = {mirageX - xOffset - w/2, mirageY - yOffset - h/2, scaledWidth, scaledHeight};
-        DrawTexturePro(mirage, mirageSource, mirageDest, origin, 0.0f, {255, 255, 255, 128});
+        drawMirage(frameWidth, xOffset, yOffset, origin, scaledWidth, scaledHeight);
     }
 }
 
-void Player::update(float delta_time, PlayerCamera& playerCamera) {
-    frameTimer += delta_time;
+void Player::update(const float dt, PlayerCamera& pc) {
+    frameTimer += dt;
     if (frameTimer >= frameTime) {
         frameTimer = 0.0f;
         currentFrame = (currentFrame + 1) % numFrames;
     }
-    updateMovement(delta_time, playerCamera);
-    updateAction(delta_time, playerCamera);
+    updateMovement(dt, pc);
+    updateAction(dt, pc);
 }
 
 void Player::resetDashing() {
@@ -135,10 +171,10 @@ void Player::handleInput(const float xOffset, const float yOffset) {
 
     if (!isDashing) {
         // WASD movement
-        if (IsKeyDown(KEY_W)) vy -= 1;
-        if (IsKeyDown(KEY_S)) vy += 1;
-        if (IsKeyDown(KEY_A)) vx -= 1;
-        if (IsKeyDown(KEY_D)) vx += 1;
+        vx = IsKeyDown(KEY_D) - IsKeyDown(KEY_A);
+        vy = IsKeyDown(KEY_S) - IsKeyDown(KEY_W);
+
+        if (IsKeyPressed(KEY_E)) equipped = !equipped;
 
         // Normalize diagonal movement
         const float len = sqrt(vx * vx + vy * vy);
@@ -208,7 +244,7 @@ void Player::handleDashCharge(const float dt, const PlayerCamera& pc) {
         if (chargeFraction > 1.0f) chargeFraction = 1.0f;
         const float eased = dashEasing(chargeFraction);
 
-        numFrames = chargeAnimation.width / pixelSize;
+        numFrames = chargeFront.width / pixelSize;
         currentFrame = min(static_cast<int>(eased * (numFrames - 1)), numFrames - 1);
     } else {
         showMirage = false;
@@ -257,10 +293,6 @@ void Player::handleNormalMovement(const float dt, float xOffset, float yOffset) 
 }
 
 void Player::updateAnimationState(PlayerCamera& pc) {
-    // if (isDashing) {
-    //     animationState = PlayerAnimationState::DASH;
-    // }
-    // else
     if (IsKeyDown(KEY_TAB)) {
         animationState = PlayerAnimationState::CHARGING;
     }
@@ -269,12 +301,10 @@ void Player::updateAnimationState(PlayerCamera& pc) {
     }
     else if (fabs(vx) > 0.1f || fabs(vy) > 0.1f) {
         animationState = PlayerAnimationState::WALKING;
-    }
-    else {
+    } else {
         animationState = PlayerAnimationState::IDLE;
     }
 }
-
 
 void Player::updateMovement(const float dt, PlayerCamera& pc) {
     const float xOffset = pc.camRect.x;
@@ -288,22 +318,7 @@ void Player::updateMovement(const float dt, PlayerCamera& pc) {
 }
 
 void Player::updateAction(float dt, PlayerCamera& pc) {
-
-
-    // Shots being removed from game.
-    // if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && !charging  && !isDashing) {
-    //     shots.emplace_back(x, y, pc);
-    // }
-
-    // for (auto it = shots.begin(); it != shots.end(); ) {
-    //     it->update(delta_time);
-    //     if (!it->isActive()) {
-    //         it = shots.erase(it);
-    //     } else {
-    //         ++it;
-    //     }
-    // }
-
+    // FIXME
 }
 
 Rectangle Player::getRect() const {

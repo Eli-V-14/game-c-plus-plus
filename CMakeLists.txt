@@ -28,5 +28,9 @@ add_executable(game-c++
         src/gameStates/soloGame.h
         src/coreMechanics/enemy.cpp
         src/coreMechanics/enemy.h
+        src/coreMechanics/weapon.cpp
+        src/coreMechanics/weapon.h
+        src/coreMechanics/sword.cpp
+        src/coreMechanics/sword.h
 )
 target_link_libraries(game-c++ PRIVATE raylib)
