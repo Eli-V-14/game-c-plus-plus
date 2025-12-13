@@ -20,23 +20,26 @@ Rectangle PlayerCamera::applyCamera(const Rectangle& rect) {
 }
 
 void PlayerCamera::followPlayer(float playerX, float playerY) {
-    float deadZoneLeft   = camRect.x + camRect.width * 0.2f;
-    float deadZoneRight  = camRect.x + camRect.width * 0.8f;
-    float deadZoneTop    = camRect.y + camRect.height * 0.3f;
-    float deadZoneBottom = camRect.y + camRect.height * 0.7f;
+    // float deadZoneLeft   = camRect.x + camRect.width * 0.2f;
+    // float deadZoneRight  = camRect.x + camRect.width * 0.8f;
+    // float deadZoneTop    = camRect.y + camRect.height * 0.3f;
+    // float deadZoneBottom = camRect.y + camRect.height * 0.7f;
+    //
+    // if (playerX < deadZoneLeft) {
+    //     camRect.x -= round(deadZoneLeft - playerX);
+    // } else if (playerX > deadZoneRight) {
+    //     camRect.x += round(playerX - deadZoneRight);
+    // }
+    //
+    // if (playerY < deadZoneTop) {
+    //     camRect.y -= round(deadZoneTop - playerY);
+    // } else if (playerY > deadZoneBottom) {
+    //     camRect.y += round(playerY - deadZoneBottom);
+    // }
 
-    if (playerX < deadZoneLeft) {
-        camRect.x -= round(deadZoneLeft - playerX);
-    } else if (playerX > deadZoneRight) {
-        camRect.x += round(playerX - deadZoneRight);
-    }
-
-    if (playerY < deadZoneTop) {
-        camRect.y -= round(deadZoneTop - playerY);
-    } else if (playerY > deadZoneBottom) {
-        camRect.y += round(playerY - deadZoneBottom);
-    }
-
+    // Center the camera on the player
+    camRect.x = playerX - camRect.width / 2.0f;
+    camRect.y = playerY - camRect.height / 2.0f;
 
 
 }

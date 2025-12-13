@@ -5,15 +5,23 @@
 #ifndef GAME_C_WEAPON_H
 #define GAME_C_WEAPON_H
 
+#include "player.h"
 
 class Weapon {
 public:
-    Weapon();
-    ~Weapon();
+    Weapon(float xOffset, float yOffset) : xOff(xOffset), yOff(yOffset) {
+    } ;
+    virtual ~Weapon() = default;
 
-    void update(float dt);
-    void attack();
-    void draw();
+    virtual void update(float dt, Player* p) = 0;
+    virtual void attack() = 0;
+    virtual void draw(Player* p) = 0;
+
+    float xOff;
+    float yOff;
+
+    float worldX;
+    float worldY;
 };
 
 

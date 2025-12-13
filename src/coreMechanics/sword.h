@@ -11,12 +11,17 @@
 
 class Sword : public Weapon {
 public:
-    Sword();
-    ~Sword();
+    Sword(float xOffset, float yOffset);
+    ~Sword() override;
 
-    void update(float dt);
-    void attack();
-    void draw();
+    void update(float dt, Player* p) override;
+    void attack() override;
+    void draw(Player* p) override;
+
+    bool attacking = false;
+
+private:
+    Texture2D sword;
 };
 
 

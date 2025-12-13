@@ -7,6 +7,7 @@
 
 #include "player.h"
 #include "playerCamera.h"
+#include "sword.h"
 
 using namespace std;
 
@@ -30,7 +31,9 @@ Player::Player(const float x, const float y, const float w, const float h) : x(x
     holdWalkBack = LoadTexture("../images/player/roninWalkHoldBSheet.png");
 
     mirageTexture = LoadTexture("../images/player/roninIdleFSheet.png");
-    weapon = LoadTexture("../images/player/finnSoulSword.png");
+
+    attackFront = LoadTexture("../images/player/roninSwingFSheet.png");
+    attackBack = LoadTexture("../images/player/roninSwingBSheet.png");
 }
 
 Player::~Player() {
@@ -50,7 +53,11 @@ Player::~Player() {
     UnloadTexture(holdIdleBack);
 
     UnloadTexture(mirageTexture);
-    UnloadTexture(weapon);
+
+    UnloadTexture(attackFront);
+    UnloadTexture(attackBack);
+
+    if (weapon) delete weapon;
 }
 
 float dashEasing(const float x) {
@@ -59,6 +66,9 @@ float dashEasing(const float x) {
 
 Texture2D& Player::getCurrentAnimation() {
     switch (animationState) {
+        case PlayerAnimationState::ATTACKING:
+            speed = 0; frameTime = 0.05f;
+            return equipped && facingFront ? attackFront : attackBack;
         case PlayerAnimationState::WALKING:  speed = 300; frameTime = 0.2f;
             return equipped ? (facingFront ? holdWalkFront : holdWalkBack) : (facingFront ? walkFront : walkBack);
         case PlayerAnimationState::RUNNING:  speed = 800; frameTime = 0.04f;
@@ -87,14 +97,16 @@ void Player::drawMirage(float frameWidth, float xOffset, float yOffset, Vector2 
 }
 
 void Player::drawWeapon(float xOffset, float yOffset) const {
-    float ww = weapon.width;
-    float wh = weapon.height;
-    float scale = 5.0f;
-    Rectangle swordSrc = {0, 0, ww, wh};
-    const Rectangle weaponDest = {x - xOffset, y - yOffset, ww * scale, wh * scale};
-    Vector2 wOrigin = {ww * scale / 2, wh * scale / 2};
-    DrawTexturePro(weapon, swordSrc, weaponDest, wOrigin, facingRight ? -45.0f : 45.0f, WHITE);
+    if (weapon && equipped) {
+        weapon->draw(const_cast<Player*>(this));
+    }
 }
+
+void Player::equipWeapon(Weapon* w) {
+    weapon = w;
+    equipped = true;
+}
+
 
 void Player::drawPlayer(const float xOffset, const float yOffset) {
     const Texture2D currentAnimation = getCurrentAnimation();
@@ -133,20 +145,51 @@ void Player::drawPlayer(const float xOffset, const float yOffset) {
         bodySrc.width = -frameWidth;
     }
 
-    DrawTexturePro(currentAnimation, bodySrc, dest, origin, 0.0f, WHITE);
-    DrawTexturePro(currentAnimation, handsSrc, dest, origin, 0.0f, WHITE);
-    if (equipped) {
-        drawWeapon(xOffset, yOffset + 25);
+
+    if (facingFront) {
+        DrawTexturePro(currentAnimation, bodySrc, dest, origin, 0.0f, WHITE);
+        DrawTexturePro(currentAnimation, handsSrc, dest, origin, 0.0f, WHITE);
+        if (equipped) {
+            drawWeapon(xOffset, yOffset + 50);
+        }
+    } else {
+        if (equipped) {
+            drawWeapon(xOffset, yOffset + 50);
+        }
+        DrawTexturePro(currentAnimation, bodySrc, dest, origin, 0.0f, WHITE);
+        DrawTexturePro(currentAnimation, handsSrc, dest, origin, 0.0f, WHITE);
     }
     DrawTexturePro(currentAnimation, headSrc, dest, origin, 0.0f, WHITE);
 
-    DrawBoundingBox({{x - xOffset - scaledWidth/4, y - yOffset - scaledHeight/2 + crouchedHeight,0},
-                {x - xOffset + scaledWidth/4, y - yOffset + scaledHeight/2, 0}}, GREEN);
+
+
+    // DrawBoundingBox({{x - xOffset - scaledWidth/4, y - yOffset - scaledHeight/2 + crouchedHeight,0},
+    //             {x - xOffset + scaledWidth/4, y - yOffset + scaledHeight/2, 0}}, GREEN);
 
     if (showMirage) {
         drawMirage(frameWidth, xOffset, yOffset, origin, scaledWidth, scaledHeight);
     }
 }
+
+void Player::resolveCollision(const Rectangle& tile) {
+    Rectangle playerRect = {x, y, w, h};
+
+    if (!CheckCollisionRecs(playerRect, tile)) return; // no collision
+
+    // Horizontal collision
+    Rectangle horizRect = {x, prevY, w, h};
+    if (CheckCollisionRecs(horizRect, tile)) {
+        x = prevX; // undo horizontal movement
+    }
+
+    // Vertical collision
+    Rectangle vertRect = {prevX, y, w, h};
+    if (CheckCollisionRecs(vertRect, tile)) {
+        y = prevY; // undo vertical movement
+    }
+}
+
+
 
 void Player::update(const float dt, PlayerCamera& pc) {
     frameTimer += dt;
@@ -287,13 +330,26 @@ void Player::handleNormalMovement(const float dt, float xOffset, float yOffset) 
     if (charging || isDashing) return;
 
     if (fabs(vx) > 0.01f || fabs(vy) > 0.01f) {
-        x += vx * speed * dt;
-        y += vy * speed * dt;
+        // Calculate intended next position
+        float nextX = x + vx * speed * dt;
+        float nextY = y + vy * speed * dt;
+
+        // Move player
+        x = nextX;
+        y = nextY;
     }
 }
 
+
 void Player::updateAnimationState(PlayerCamera& pc) {
-    if (IsKeyDown(KEY_TAB)) {
+    if (!attacking && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+        attacking = true;
+        attackTimer = 0;
+        currentFrame = 0;
+        animationState = PlayerAnimationState::ATTACKING;
+
+    }
+    else if (IsKeyDown(KEY_TAB)) {
         animationState = PlayerAnimationState::CHARGING;
     }
     else if ((fabs(vx) > 0.1f || fabs(vy) > 0.1f) && IsKeyDown(KEY_LEFT_SHIFT)) {
@@ -307,6 +363,9 @@ void Player::updateAnimationState(PlayerCamera& pc) {
 }
 
 void Player::updateMovement(const float dt, PlayerCamera& pc) {
+    prevX = x;
+    prevY = y;
+
     const float xOffset = pc.camRect.x;
     const float yOffset = pc.camRect.y;
 

@@ -16,108 +16,129 @@
 #include "../coreMechanics/settings.h"
 #include "../coreMechanics/playerCamera.h"
 #include "../coreMechanics/enemy.h"
+#include "../coreMechanics/sword.h"
 
 class SoloGame final : public GameState {
 private:
     // add variables
-    const int MAX_ENEMIES = 15;
-
     GameStateManager* gsm;
     PlayerCamera* pc;
-    Player* p;
+    Player*p;
     Stats* stats;
+    vector<Rectangle> collidableTiles;
 
-    vector<Enemy> enemies;
 
-    int gridSize = 100;
+    int gridSize = 250;
     int worldSize = 6000;
+
+    vector<vector<int>> mapGrid;
+    Texture2D tileTextures[14];
+    const char* tileFiles[14] = {"grass-t", "grass-b", "north", "east", "south", "west", "nve", "nvw", "sve", "svw", "nce", "ncw", "sce", "scw"};
+    const int TILE_SRC_SIZE = 64;
+
+
 
 public:
     explicit SoloGame(GameStateManager* gsm) : gsm(gsm), p(nullptr), pc(nullptr) {}
     void init() override {
         // initialize menu resources
-        p = new Player(0,0,30,50);
+        p = new Player(15 * gridSize,4 * gridSize,30,50);
         pc = new PlayerCamera(-SCREEN_WIDTH / 2 - p->getWidth() / 2,
                             -SCREEN_HEIGHT / 2 - p->getHeight() / 2,
                             SCREEN_WIDTH, SCREEN_HEIGHT,
                             SCREEN_WIDTH, SCREEN_HEIGHT);
+        p->equipWeapon(new Sword(pc->camRect.x, pc->camRect.y + 50));
         stats = new Stats();
 
-    }
-    // void generateEnemy(float playerX, float playerY) {
-    //     mt19937 rng(random_device{}());
-    //     uniform_real_distribution<float> distAngle(0.0, 2.0f * PI);
-    //     uniform_real_distribution<float> distRadius(500, 700);
-    //     float angle = distAngle(rng);
-    //     float radius = distRadius(rng);
-    //
-    //     enemies.push_back(Enemy(playerX + cosf(angle) * radius,
-    //                                 playerY + sinf(angle) * radius,
-    //                                 30, 50));
-    // }
-
-    void updateEnemies(float dt, float playerX, float playerY) {
-        for (auto& e : enemies) {
-            e.update(dt, p->getX(), p->getY(), *pc);
+        for (int i = 0; i < 14; i++) {
+            string path = "../images/map/" + string(tileFiles[i]) + ".png";
+            tileTextures[i] = LoadTexture(path.c_str());
         }
 
-        // while (enemies.size() < MAX_ENEMIES) {
-        //     generateEnemy(playerX, playerY);
-        // }
+        mapGrid = {
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 2, 2, 2, 2, 2, 2, 2, 2, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 0, 0, 7, 2, 2, 2, 2,11, 1, 1, 1, 1, 1, 1, 1, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 0, 0, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,10, 2, 2, 2, 6, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 7, 2,11, 1, 1, 1, 1, 1,12, 4, 4, 4,13, 1, 1, 1, 1, 1, 1, 1, 3, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 5, 1, 1, 1, 1, 1, 1, 1,10, 6, 0, 0, 9,13, 1, 1, 1, 1, 1, 1, 3, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 5, 1, 1, 1, 1, 1, 1, 1, 1,10, 2, 2, 2,11, 1, 1, 1, 1, 1, 1, 3, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 9, 4, 4, 4, 4,13, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,12, 4, 8, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 0, 0, 0, 0, 0, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 0, 0, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 0, 0, 0, 0, 0, 9, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 8, 0, 0, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+            { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        };
+        generateCollidableTiles();
+
     }
 
-    static void checkShotCollision(vector<Shoot>& ss, vector<Enemy>& es) {
-        for (auto& e : es) {
-            for (auto& s : ss) {
-                if (CheckCollisionRecs(e.getRect(), s.getRect())) {
-                    s.active = false;
-                    e.active = false;
-                }
-            }
+    void checkPlayerCollision() {
+        for (const auto& tileRect : collidableTiles) {
+            p->resolveCollision(tileRect);
         }
-        // Remove inactive enemies
-        es.erase(remove_if(es.begin(), es.end(), [](const Enemy& e){ return !e.active; }), es.end());
-        // Remove inactive shots
-        ss.erase(remove_if(ss.begin(), ss.end(), [](const Shoot& s){ return !s.active; }), ss.end());
     }
 
     void update(float dt) {
         // update game logic
         p->update(dt, *pc);
+        checkPlayerCollision();
         pc->followPlayer(p->getX(), p->getY());
-        updateEnemies(dt, p->getX(), p->getY());
     }
 
-    void drawBackgroundLines() const {
-        // Get camera info
-        float camX = pc->camRect.x;
-        float camY = pc->camRect.y;
-        float camW = pc->camRect.width;
-        float camH = pc->camRect.height;
-        int screenW = pc->screenWidth;
-        int screenH = pc->screenHeight;
-
-        // The ratio of world-space size to screen-space pixels
-        float scaleX = screenW / camW;
-        float scaleY = screenH / camH;
-
-        // Convert spacing to screen-space (affected by zoom)
-        float screenSpacingX = 100.0 * scaleX;
-        float screenSpacingY = 100.0 * scaleY;
-
-        // The camera’s offset within a grid cell (so movement scrolls smoothly)
-        float offsetX = fmod(camX * scaleX, screenSpacingX);
-        float offsetY = fmod(camY * scaleY, screenSpacingY);
-
-
-        // Draw vertical lines
-        for (float x = -offsetX; x < screenW; x += screenSpacingX) {
-            DrawLine(x, 0, x, screenH, GRAY);
+    void generateCollidableTiles() {
+        collidableTiles.clear();
+        for (int y = 0; y < mapGrid.size(); y++) {
+            for (int x = 0; x < mapGrid[y].size(); x++) {
+                int tile = mapGrid[y][x];
+                if (tile != 1) { // Only solid tiles
+                    Rectangle rect;
+                    rect.x = x * gridSize;
+                    rect.y = y * gridSize;
+                    rect.width = gridSize;
+                    rect.height = gridSize;
+                    collidableTiles.push_back(rect);
+                }
+            }
         }
+    }
 
-        // Draw horizontal lines
-        for (float y = -offsetY; y < screenH; y += screenSpacingY) {
-            DrawLine(0, y, screenW, y, GRAY);
+
+    void drawMapGrid() const {
+        for (int y = 0; y < mapGrid.size(); y++) {
+            for (int x = 0; x < mapGrid[y].size(); x++) {
+
+                int tile = mapGrid[y][x];
+                if (tile < 0 || tile > 13) continue;
+
+                // World position of the tile
+                float worldX = x * gridSize;
+                float worldY = y * gridSize;
+
+                // Convert to screen-space relative to camera top-left
+                float screenX = worldX - pc->camRect.x;
+                float screenY = worldY - pc->camRect.y;
+
+                // Draw scaled tile
+                DrawTexturePro(
+                    tileTextures[tile],
+                    {0.0f, 0.0f, (float)TILE_SRC_SIZE, (float)TILE_SRC_SIZE},
+                    {screenX, screenY, (float)gridSize, (float)gridSize},
+                    {0.0f, 0.0f}, 0.0f, WHITE
+                );
+
+                if (tile != 1) {
+                    DrawRectangleLines(
+                    (int)screenX,
+                    (int)screenY,
+                    gridSize,
+                    gridSize,
+                    {0,0, 0, 0}
+                    // BLACK // Color of the bounding box
+                );
+                }
+            }
         }
     }
 
@@ -125,18 +146,12 @@ public:
 
     void render() override {
         // render the screen
-        // Draw vertical lines
         ClearBackground(WHITE);
-        drawBackgroundLines();
+        drawMapGrid();
+
 
         p->drawPlayer(pc->camRect.x, pc->camRect.y);
         // m.drawDirection(p.getX(), p.getY(), p.getWidth(), p.getHeight());
-
-        for (auto& e : enemies) {
-            e.drawEnemy(*pc);
-        }
-
-        checkShotCollision(p->shots, enemies);
 
         DrawRectangleLines(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, PURPLE);
         stats->displayStats(p->getX(), p->getY());
@@ -151,6 +166,10 @@ public:
         delete pc;
         delete p;
         delete stats;
+
+        for (int i = 0; i < 14; i++) {
+            UnloadTexture(tileTextures[i]);
+        }
     }
 };
 

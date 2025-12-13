@@ -4,29 +4,34 @@
 
 #ifndef PLAYER_H
 #define PLAYER_H
-#include <vector>
-
 #include "playerCamera.h"
-#include "shoot.h"
 using namespace std;
+
+class Weapon;
 
 enum class PlayerAnimationState {
     IDLE,
     RUNNING,
     WALKING,
-    CHARGING
+    CHARGING,
+    ATTACKING
 };
 
 class Player {
 public:
 
     // Dash
+    bool charging = false;
     bool isDashing = false;
     bool dashed = false;
     float dashDirX = 0, dashDirY = 0;
     float dash = 10, dashProgress = 0;
     float startingDashX = 0, startingDashY = 0;
     float startDashTime = 0;
+    float speed = 50.0f;
+    float maxDashCharge = 800.0f;
+    float dashMultiplier = 100.0f;
+    float maxDashDistance = 500.0f;
 
     // Crouch
     float crouchedHeight = 0, crouchProgress = 0;
@@ -35,23 +40,22 @@ public:
     bool showMirage = false;
     float mirageX = 0, mirageY = 0;
 
-    bool charging = false;
-    vector<Shoot> shots;
-
-    float speed = 50.0f;
-    float maxDashCharge = 800.0f;
-    float dashMultiplier = 100.0f;
-    float maxDashDistance = 500.0f;
-
+    // Timing delay
     float inputDelayTimer = 0.0f;
     bool inputEnabled = false;
 
     float pixelSize = 16;
+
+    // player characteristics
     bool facingRight = true;
     bool facingFront = true;
-
     bool equipped = false;
     bool isHolding = true;
+
+    // player attacking
+    bool attacking = false;
+    float attackTimer = 0;
+    float attackDuration = 0.3f;
 
     void setX(const float x_val) {
         x = x_val;
@@ -90,11 +94,11 @@ public:
         return w;
     }
 
-    void update(const float dt, PlayerCamera& pc);
-    void handleInput(const float xOffset, const float yOffset);
-    void handleDashCharge(const float dt, const PlayerCamera& pc);
-    void handleDashMovement(const float dt);
-    void handleNormalMovement(const float dt, const float xOffset, const float yOffset);
+    void update(float dt, PlayerCamera& pc);
+    void handleInput(float xOffset, float yOffset);
+    void handleDashCharge(float dt, const PlayerCamera& pc);
+    void handleDashMovement(float dt);
+    void handleNormalMovement(float dt, float xOffset, float yOffset);
     void updateAnimationState(PlayerCamera& pc);
 
     void updateMovement(const float dt, PlayerCamera& pc);
@@ -107,8 +111,11 @@ public:
                     float scaledHeight) const;
 
     void drawWeapon(float xOffset, float yOffset) const;
+    void equipWeapon(Weapon* w);
 
-    void drawPlayer(const float xOffset, const float yOffset);
+    void drawPlayer(float xOffset, float yOffset);
+
+    void resolveCollision(const Rectangle &tile);
 
 
     Rectangle getRect() const;
@@ -123,6 +130,8 @@ private:
     float h;
     float vx = 0;
     float vy = 0;
+    float prevX, prevY;
+
 
     Texture2D idleFront;
     Texture2D idleBack;
@@ -143,9 +152,13 @@ private:
     Texture2D holdWalkBack;
 
     Texture2D mirageTexture;
-    Texture2D weapon;
+
+    Texture2D attackFront;
+    Texture2D attackBack;
 
     PlayerAnimationState animationState = PlayerAnimationState::IDLE;
+
+    Weapon* weapon = nullptr;
 
     int currentFrame = 0;
     int numFrames = 4;
